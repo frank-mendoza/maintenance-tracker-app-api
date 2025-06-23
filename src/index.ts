@@ -1,0 +1,91 @@
+import express from "express";
+
+import cors from "cors";
+import mongoose from "mongoose";
+import * as dotenv from "dotenv";
+
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import path from "path";
+import morgan from "morgan";
+import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
+
+import authRouter from "./routes/authRouter";
+import userRouter from "./routes/userRouter";
+import { authenticateUser } from "./middleware/authMiddleware";
+
+dotenv.config();
+
+const app = express();
+
+app.use(
+  cors({
+    origin: process.env.WEB_APP_ROUTE, // Explicitly set the allowed origin
+    credentials: true, // Allow cookies and authentication headers
+    methods: ["GET", "POST"], // Specify allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
+  })
+);
+
+app.use(express.json());
+
+app.use(cookieParser());
+
+app.use(helmet());
+app.use(mongoSanitize());
+
+// __dirname workaround for ES modules
+export const __dirname = path.resolve();
+
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+
+// Define the directory where PDFs will be saved
+// const REPORTS_DIR = path.join(__dirname, "uploads", "reports");
+
+// Ensure the folder exists
+// if (!existsSync(REPORTS_DIR)) {
+//   mkdirSync(REPORTS_DIR, { recursive: true });
+// }
+
+// app.get("/", (req, res) => {
+//   res.send("✅ Backend running with Node.js 20 and Express 4.19");
+// });
+
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/user", authenticateUser, userRouter);
+
+app.use((req, res) => {
+  res.status(404).json({ msg: "Not found" });
+});
+
+// Handle OPTIONS preflight requests
+app.options("*", cors());
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      // Add other necessary directives...
+    },
+  })
+);
+
+// Error handler middleware should be the last middleware
+app.use(errorHandlerMiddleware);
+
+const PORT = process.env.PORT || 5000;
+
+mongoose
+  .connect(process.env.MONGO_URI!)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🌐 Server running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection failed:", err);
+  });
