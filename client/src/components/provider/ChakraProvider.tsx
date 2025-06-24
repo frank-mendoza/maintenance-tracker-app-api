@@ -5,10 +5,10 @@ import { MainProvider } from "../provider/MainProvider";
 import Sidebar from "../Sidebar";
 import Navbar from "../Navbar";
 import { useEffect } from "react";
-import { fetchUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { Loading } from "../Loading";
+import { fetchUser } from "@/lib/api/user";
 
 const GlobalProvider = ({
   children,
@@ -20,12 +20,13 @@ const GlobalProvider = ({
 
   useEffect(() => {
     (async () => {
-      const user = await fetchUser();
-      if (user.status !== 200) {
+      const user: any = await fetchUser();
+
+      if (user.error) {
         router.push("/login");
         clearUser();
       } else {
-        setUser(user.data.user);
+        setUser(user.user);
       }
       setLoading(false);
     })();

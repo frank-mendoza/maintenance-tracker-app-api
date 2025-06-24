@@ -24,7 +24,7 @@ const userSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: ["tenant", "landlord", "technician"],
-      default: "tenant",
+      default: "landlord",
     },
     assignedRequests: [{ type: Schema.Types.ObjectId, ref: "MaintenanceLog" }],
     propertiesOwned: [{ type: Schema.Types.ObjectId, ref: "Property" }],

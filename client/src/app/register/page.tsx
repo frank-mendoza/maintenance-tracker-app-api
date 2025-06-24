@@ -16,12 +16,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { userRegisterSchema } from "@/lib/formValidator";
 import { InferType } from "yup";
 import { toaster } from "@/components/ui/toaster";
-import { registerUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Inputs from "@/components/inputs/Inputs";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
 import useGlobalStore from "@/lib/store/useGlobalStore";
+import { registerUser } from "@/lib/api/auth";
 
 export type FormData = InferType<typeof userRegisterSchema>;
 
@@ -41,14 +41,14 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    const res = await registerUser({
+    const res: any = await registerUser({
       name: data.name,
       email: data.email,
       password: data.password,
       lastName: data.lastname,
     });
 
-    if (res.success) {
+    if (res?.success) {
       toaster.create({
         description: "Successfully registered!",
         type: "success",
@@ -57,7 +57,7 @@ export default function RegisterPage() {
       router.push("/login");
     } else {
       toaster.create({
-        description: res?.data?.msg || "Failed to register. Please try again.",
+        description: res?.msg || "Failed to register. Please try again.",
         type: "error",
       });
     }

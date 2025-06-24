@@ -13,6 +13,7 @@ import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
 
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
+import propertyRouter from "./routes/propertyRouter";
 import { authenticateUser } from "./middleware/authMiddleware";
 
 dotenv.config();
@@ -55,10 +56,11 @@ if (process.env.NODE_ENV === "development") {
 // });
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/property", authenticateUser, propertyRouter);
 app.use("/api/v1/user", authenticateUser, userRouter);
 
 app.use((req, res) => {
-  res.status(404).json({ msg: "Not found" });
+  res.status(404).json({ msg: "Not found", error: true });
 });
 
 // Handle OPTIONS preflight requests

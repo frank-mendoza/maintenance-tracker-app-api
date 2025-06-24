@@ -1,8 +1,9 @@
 "use client";
 import { Loading } from "@/components/Loading";
+import { toaster } from "@/components/ui/toaster";
+import { verifyUserEmail } from "@/lib/api/auth";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { verifyUserEmail } from "@/lib/api";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { Button, Center, Text } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,7 +24,7 @@ const VerifyEmail = () => {
 
     const verify = async () => {
       setLoading(true);
-      const res = await verifyUserEmail(token);
+      const res: any = await verifyUserEmail(token);
 
       if (res?.error) {
         if (res?.msg === "Email is already verified.") {
@@ -32,13 +33,17 @@ const VerifyEmail = () => {
           setIsVerifiedErr(true);
         }
       } else {
+        toaster.create({
+          description: res?.data?.msg || "Successfully verified",
+          type: "success",
+        });
         setVerified(true);
       }
       setLoading(false);
     };
 
     verify();
-  }, []);
+  }, [token]);
 
   const renderContent = () => {
     if (isVerifiedErr)

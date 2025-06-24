@@ -1,0 +1,46 @@
+import mongoose, { Schema, Document } from "mongoose";
+
+export interface IProperty extends Document {
+  name: string;
+  location: {
+    town: string;
+    province: string;
+  };
+  description?: string;
+  active: boolean;
+  rent: number; // monthly rent per unit
+  type: "apartment" | "house" | "boarding house" | "condo"; // e.g., "Apartments", "House", etc.
+  units: number; // number of apartments or rooms
+  status: "pending" | "in_progress" | "completed";
+  tenants: mongoose.Types.ObjectId[]; // references to Tenant documents
+}
+
+const PropertySchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    active: { type: Boolean, required: true, default: true },
+    location: {
+      town: { type: String, required: true },
+      province: { type: String, required: true },
+    },
+    description: { type: String, required: true },
+    rent: { type: Number, required: true },
+    type: { type: String, required: true, default: "apartment" },
+    units: { type: Number, required: true, default: 1 },
+    status: {
+      type: String,
+      enum: ["pending", "in_progress", "completed"],
+      default: "pending",
+    },
+    tenants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Tenant",
+        default: [],
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model<IProperty>("Property", PropertySchema);

@@ -5,10 +5,14 @@ const SelectInput = ({
   items,
   placeholder,
   label,
+  value,
+  onChange,
 }: {
   items: ListCollection<any>;
   placeholder: string;
   label: string;
+  value: any;
+  onChange: any;
 }) => {
   return (
     <Select.Root
@@ -18,6 +22,8 @@ const SelectInput = ({
       size="sm"
       mb={5}
       width="auto"
+      value={value}
+      onValueChange={onChange}
     >
       <Select.HiddenSelect />
       <Select.Label fontWeight={500} minW={100}>

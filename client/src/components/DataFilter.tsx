@@ -65,12 +65,12 @@ const DataFilter = ({
 
           <Dialog.Backdrop />
           <Dialog.Positioner>
-            <Dialog.Content width={"400px"} p={4}>
+            <Dialog.Content width={"400px"}>
               <Dialog.CloseTrigger />
               <Dialog.Header mb={4}>
                 <Dialog.Title>Filter {title}</Dialog.Title>
               </Dialog.Header>
-              <Dialog.Body my={4}>
+              <Dialog.Body my={4} py={0}>
                 <Stack gap={4}>{filters}</Stack>
               </Dialog.Body>
               <Dialog.Footer>

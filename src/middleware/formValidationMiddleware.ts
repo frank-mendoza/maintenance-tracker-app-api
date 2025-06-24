@@ -79,3 +79,19 @@ export const validateInputFields = (fields: FieldOptions) =>
         body("location").notEmpty().withMessage("Location is required"),
     ].filter(Boolean)
   ); // remove falsy entries
+
+export const validateInputProperty = withValidationErrors([
+  body("name").notEmpty().withMessage("Name is required"),
+
+  body("location.town").notEmpty().withMessage("Town is required"),
+
+  body("location.province").notEmpty().withMessage("Province is required"),
+
+  body("description").isString().withMessage("Description must be a string"),
+
+  body("rent")
+    .isNumeric()
+    .withMessage("Rent must be a number")
+    .custom((val) => val >= 0)
+    .withMessage("Rent must be 0 or greater"),
+]); // remove falsy entries

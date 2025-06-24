@@ -1,7 +1,6 @@
 "use client";
 // components/Navbar.tsx
 
-import { logoutUser } from "@/lib/api";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import {
   Box,
@@ -17,6 +16,7 @@ import {
 import NextLink from "next/link";
 import { toaster } from "./ui/toaster";
 import { useRouter } from "next/navigation";
+import { logoutUser } from "@/lib/api/auth";
 
 const Links = [
   { label: "Home", href: "/" },
@@ -55,7 +55,7 @@ export default function Navbar() {
 
   const router = useRouter();
   const handleSignOut = async () => {
-    const logout = await logoutUser();
+    const logout: any = await logoutUser();
     if (logout?.success) {
       toaster.create({
         description: "Successfully logout!",

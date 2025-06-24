@@ -4,7 +4,8 @@
 
 import Inputs from "@/components/inputs/Inputs";
 import { toaster } from "@/components/ui/toaster";
-import { fetchUser, loginUser } from "@/lib/api";
+import { loginUser } from "@/lib/api/auth";
+import { fetchUser } from "@/lib/api/user";
 import { userLoginSchema } from "@/lib/formValidator";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { Box, Button, Heading, Spinner, VStack } from "@chakra-ui/react";
@@ -28,34 +29,31 @@ export default function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    try {
-      const res = await loginUser({
-        email: data.email,
-        password: data.password,
+
+    const res: any = await loginUser({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (res?.error) {
+      toaster.create({
+        description: res?.msg || "Failed to login. Please try again.",
+        type: "error",
+      });
+    } else {
+      toaster.create({
+        description: "Successfully login!",
+        type: "success",
       });
 
-      if (res?.success) {
-        toaster.create({
-          description: "Successfully login!",
-          type: "success",
-        });
-
-        const user = await fetchUser();
-        if (user.status === 200) {
-          setUser(user.data.user);
-        }
-        router.push("/overview");
-      } else {
-        toaster.create({
-          description: res?.data?.msg || "Failed to login. Please try again.",
-          type: "error",
-        });
+      const user: any = await fetchUser();
+      if (user?.status === 200) {
+        setUser(user.data.user);
       }
-    } catch (err: any) {
-      console.error("Login error:", err);
-    } finally {
-      setLoading(false);
+      router.push("/overview");
     }
+
+    setLoading(false);
   };
 
   return (

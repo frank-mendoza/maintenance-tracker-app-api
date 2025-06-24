@@ -13,8 +13,9 @@ import {
   IconButton,
   Button,
   GridItem,
+  Center,
 } from "@chakra-ui/react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { BiPlus } from "react-icons/bi";
 import { CiBoxList, CiGrid41 } from "react-icons/ci";
 import { FiMapPin } from "react-icons/fi";
@@ -23,27 +24,9 @@ import { MdApartment } from "react-icons/md";
 import PropertyCard from "./components/PropertyCard";
 import HorizontalCard from "@/components/HorizontalCard";
 import DataFilter from "@/components/DataFilter";
-
-const mockProperties = [
-  {
-    id: 1,
-    name: "Sunset Villas",
-    address: "123 Palm Street, Miami, FL",
-    units: 12,
-  },
-  {
-    id: 2,
-    name: "Green Heights",
-    address: "456 Oak Lane, Denver, CO",
-    units: 8,
-  },
-  {
-    id: 3,
-    name: "Downtown Loft",
-    address: "789 City Ave, New York, NY",
-    units: 5,
-  },
-];
+import { fetchProperties } from "@/lib/api/property";
+import { toaster } from "@/components/ui/toaster";
+import { IProperty } from "@/types/property.types";
 
 export const GridItemsList = ({
   label,
@@ -77,7 +60,7 @@ export const items = [
   },
 ];
 
-const PropertyCardList = () => {
+const PropertyCardList = ({ data }: { data: IProperty }) => {
   const grids = (
     <>
       <GridItem colSpan={1}>
@@ -91,7 +74,7 @@ const PropertyCardList = () => {
       <GridItemsList
         label={"Apartment Name"}
         colSpan={2}
-        type={<Text>Living room Sofa</Text>}
+        type={<Text>{data?.name}</Text>}
       />
       <GridItemsList
         label={"Address"}
@@ -99,7 +82,7 @@ const PropertyCardList = () => {
           <Flex gap={2} alignItems={"center"}>
             <FiMapPin color="#a1a1aa" />
             <Text fontSize={12} color={"gray.400"}>
-              Virac
+              {data?.location?.province} , {data?.location?.town}
             </Text>
           </Flex>
         }
@@ -109,7 +92,7 @@ const PropertyCardList = () => {
         label={"Rent"}
         type={
           <Text fontSize={12} color={"gray.400"}>
-            $300 / Flat
+            ${data?.rent} / {data.type}
           </Text>
         }
       />
@@ -120,7 +103,7 @@ const PropertyCardList = () => {
           <Flex gap={2} alignItems={"center"}>
             <MdApartment color="#a1a1aa" />
             <Text fontSize={12} color={"gray.400"}>
-              4 Apartments
+              {data.units} {data.type}
             </Text>
           </Flex>
         }
@@ -130,7 +113,9 @@ const PropertyCardList = () => {
         type={
           <Flex gap={2} alignItems={"center"}>
             <GoDotFill size={24} color="#6fe099" />
-            <Text color={"#6fe099"}>Rent</Text>
+            <Text fontSize={14} textTransform={"capitalize"} color={"#6fe099"}>
+              {data?.status}
+            </Text>
           </Flex>
         }
       />
@@ -147,19 +132,77 @@ const PropertyCardList = () => {
 };
 
 export default function PropertiesPage() {
+  const [properties, setProperties] = useState<IProperty[]>([]);
   const [gridType, setGridType] = useState<1 | 2>(1);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [filters, setFilters] = useState({ property: "", status: "" });
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [filters, setFilters] = useState({
+    property: "",
+    status: "",
+    sort: "",
+  });
+  const [filtersTemp, setFiltersTemp] = useState({
+    property: [],
+    status: [],
+    sort: [],
+  });
 
-  const frameworks = createListCollection({
+  // Debounce effect
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(handler); // Cleanup on input change
+  }, [search]);
+
+  useEffect(() => {
+    (async () => {
+      const query: any = {
+        ...filters,
+      };
+
+      if (debouncedSearch) query.search = debouncedSearch;
+
+      const res: any = await fetchProperties(query);
+
+      if (res.error) {
+        toaster.create({
+          description: res?.msg || "Error fetching data!",
+          type: "error",
+        });
+      } else {
+        setProperties(res.properties);
+      }
+    })();
+  }, [filters, debouncedSearch]);
+
+  const apartmentTypes = createListCollection({
     items: [
-      { label: "React.js", value: "react" },
-      { label: "Vue.js", value: "vue" },
-      { label: "Angular", value: "angular" },
-      { label: "Svelte", value: "svelte" },
+      { label: "Apartment", value: "apartment" },
+      { label: "Transcient House / House", value: "house" },
+      { label: "Boarding House", value: "boarding house" },
+      { label: "Condo", value: "condo" },
     ],
   });
+
+  const sorts = createListCollection({
+    items: [
+      { label: "Latest", value: "newest" },
+      { label: "Oldest", value: "oldest" },
+      { label: "A-Z", value: "a-z" },
+      { label: "Z-A", value: "z-a" },
+    ],
+  });
+  const status = createListCollection({
+    items: [
+      { label: "Pending", value: "pending" },
+      { label: "In progress", value: "in_progress" },
+      { label: "Completed", value: "completed" },
+    ],
+  });
+
   return (
     <Box p={6}>
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
@@ -200,22 +243,56 @@ export default function PropertiesPage() {
           <>
             <SelectInput
               label={"Type"}
-              placeholder="Select type"
-              items={frameworks}
+              placeholder="Select apartment type"
+              items={apartmentTypes}
+              onChange={(e: any) =>
+                setFiltersTemp({
+                  ...filtersTemp,
+                  property: e.value,
+                })
+              }
+              value={filtersTemp.property}
             />
             <SelectInput
-              label={"Location"}
-              placeholder="Select location"
-              items={frameworks}
+              label={"Sort"}
+              placeholder="Sort by"
+              items={sorts}
+              onChange={(e: any) =>
+                setFiltersTemp({
+                  ...filtersTemp,
+                  sort: e.value,
+                })
+              }
+              value={filtersTemp.sort}
+            />
+            <SelectInput
+              label={"Status"}
+              placeholder="Select status"
+              items={status}
+              onChange={(e: any) =>
+                setFiltersTemp({
+                  ...filtersTemp,
+                  status: e.value,
+                })
+              }
+              value={filtersTemp.status}
             />
           </>
         }
         onCLoseFilter={() => {
-          setFilters({ property: "", status: "" });
+          setFilters({ property: "", status: "", sort: "" });
+          setFiltersTemp({ property: [], status: [], sort: [] });
           setSearch("");
           setIsOpen(false);
         }}
-        onSubmitFilter={() => ""}
+        onSubmitFilter={() => {
+          setFilters({
+            property: filtersTemp.property[0] || "",
+            status: filtersTemp.status[0] || "",
+            sort: filtersTemp.sort[0] || "",
+          });
+          setIsOpen(false);
+        }}
       />
 
       {gridType === 1 ? (
@@ -225,9 +302,15 @@ export default function PropertiesPage() {
           columns={{ base: 1, md: 2, lg: 3, xl: 4 }}
           gap={6}
         >
-          {mockProperties.map((property) => (
-            <PropertyCard key={property.id} />
-          ))}
+          {properties.length > 0 ? (
+            properties.map((property) => (
+              <PropertyCard key={property._id} data={property} />
+            ))
+          ) : (
+            <GridItem>
+              <Center>No data available</Center>
+            </GridItem>
+          )}
         </SimpleGrid>
       ) : (
         <SimpleGrid
@@ -236,9 +319,13 @@ export default function PropertiesPage() {
           columns={{ base: 1 }}
           gap={6}
         >
-          {mockProperties.map((property) => (
-            <PropertyCardList key={property.id} />
-          ))}
+          {properties.length > 0 ? (
+            properties.map((property) => (
+              <PropertyCardList key={property._id} data={property} />
+            ))
+          ) : (
+            <Center>No data available</Center>
+          )}
         </SimpleGrid>
       )}
     </Box>
