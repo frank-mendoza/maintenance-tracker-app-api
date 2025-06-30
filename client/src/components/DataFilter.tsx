@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
@@ -12,6 +11,8 @@ import {
 import { ReactNode } from "react";
 import { BiFilter } from "react-icons/bi";
 
+import "./DataFilter.css";
+
 interface DataFilterProps {
   search: string;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -23,8 +24,10 @@ interface DataFilterProps {
   onSubmitFilter: () => void;
   actions?: ReactNode;
   actionButtons?: ReactNode;
+  filterNumber: number;
 }
 const DataFilter = ({
+  filterNumber,
   search,
   onSearchChange,
   isOpen,
@@ -58,7 +61,14 @@ const DataFilter = ({
           onOpenChange={onOpenFilter}
         >
           <Dialog.Trigger asChild>
-            <IconButton aria-label="Filter" variant={"subtle"}>
+            <IconButton
+              aria-label="Filter"
+              variant={"subtle"}
+              className="filter"
+            >
+              {filterNumber > 0 && (
+                <div className="badge-alert">{filterNumber}</div>
+              )}
               <BiFilter />
             </IconButton>
           </Dialog.Trigger>

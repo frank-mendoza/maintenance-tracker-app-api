@@ -17,30 +17,31 @@ import { IProperty } from "@/types/property.types";
 const PropertyCard = ({ data }: { data: IProperty }) => {
   return (
     <Link
-      href="/properties/1"
+      href={`/properties/${data._id}`}
       textDecoration="none"
       outline="none"
       transition="all 0.2s"
       _hover={{ boxShadow: "md" }}
     >
-      <Card.Root overflow="hidden" p={4} border={0}>
+      <Card.Root minW={"100%"} overflow="hidden" p={4} border={0}>
         <Image
           borderRadius={"md"}
-          src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80"
+          width={"100%"}
+          height={150}
+          objectFit={"cover"}
+          src={data?.images?.[0]?.path || "https://placehold.co/400"}
           alt="Green double couch with wooden legs"
         />
         <Card.Body gap="2" px={0}>
-          <Flex mt={2} justifyContent={"space-between"}>
-            <Flex gap={2}>
-              <FiMapPin color="#a1a1aa" />
-              <Text fontSize={12} color={"gray.400"}>
-                {data?.location?.province},{data?.location?.town}
-              </Text>
-            </Flex>
+          <Flex gap={2}>
+            <FiMapPin color="#a1a1aa" />
             <Text fontSize={12} color={"gray.400"}>
-              ${data?.rent} / {data.type}
+              {data?.location?.province},{data?.location?.town}
             </Text>
           </Flex>
+          <Text fontSize={12} color={"gray.400"}>
+            ${data?.rent} / {data.type}
+          </Text>
           <Card.Title>{data?.name}</Card.Title>
           <Flex mt={2} justifyContent={"space-between"}>
             <Flex gap={2}>

@@ -12,7 +12,8 @@ export interface IProperty extends Document {
   type: "apartment" | "house" | "boarding house" | "condo"; // e.g., "Apartments", "House", etc.
   units: number; // number of apartments or rooms
   status: "pending" | "in_progress" | "completed";
-  tenants: mongoose.Types.ObjectId[]; // references to Tenant documents
+  tenants: mongoose.Types.ObjectId[];
+  images: { path: string; public_id: string }[];
 }
 
 const PropertySchema: Schema = new Schema(
@@ -37,6 +38,12 @@ const PropertySchema: Schema = new Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Tenant",
         default: [],
+      },
+    ],
+    images: [
+      {
+        path: { type: String, required: true },
+        public_id: { type: String, required: true },
       },
     ],
   },

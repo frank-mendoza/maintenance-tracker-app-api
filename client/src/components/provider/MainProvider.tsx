@@ -13,10 +13,6 @@ export function MainProvider({ children }: { children: ReactNode }) {
   const { user } = useGlobalStore();
   const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   setLoading(false);
-  // }, []);
-
   useEffect(() => {
     const localUser = localStorage.getItem("user");
     const isPublicRoute =
@@ -24,7 +20,7 @@ export function MainProvider({ children }: { children: ReactNode }) {
     if ((user || localUser) && isPublicRoute) {
       router.push("/overview");
     }
-    setLoading(false)
+    setLoading(false);
   }, [user, pathname]);
 
   if (loading) return <></>;

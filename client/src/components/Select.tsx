@@ -7,21 +7,29 @@ const SelectInput = ({
   label,
   value,
   onChange,
+  width,
+  vertical,
+  center,
+  mb,
 }: {
   items: ListCollection<any>;
   placeholder: string;
   label: string;
   value: any;
   onChange: any;
+  width?: string | number;
+  vertical?: boolean;
+  center?: boolean;
+  mb?: boolean;
 }) => {
   return (
     <Select.Root
       collection={items}
-      flexDirection={"row"}
-      alignItems={"center"}
+      flexDirection={vertical ? "column" : "row"}
+      alignItems={center ? "center" : "start"}
       size="sm"
-      mb={5}
-      width="auto"
+      mb={mb ? 5 : 0}
+      width={width || "auto"}
       value={value}
       onValueChange={onChange}
     >

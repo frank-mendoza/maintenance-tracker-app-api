@@ -18,6 +18,8 @@ interface GlobalStoreState {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
   loading: boolean;
+  loadingSpiner: boolean;
+  setLoadingSpinner: (state: boolean) => void;
   setLoading: (state: boolean) => void;
 }
 
@@ -34,9 +36,8 @@ const useGlobalStore = create<GlobalStoreState>((set) => ({
 
   loading: false,
   setLoading: (state) => set({ loading: state }),
-  // setTimeout(() => {
-
-  // }, 1000),
+  loadingSpiner: false,
+  setLoadingSpinner: (state) => set({ loadingSpiner: state }),
 
   sidebarOpen: true,
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),

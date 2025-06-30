@@ -39,3 +39,11 @@ export const userLoginSchema = yup.object({
 
   password: yup.string().required("Password is required"),
 });
+
+export const propertySchema = yup.object({
+  name: yup.string().required("Name is required"),
+  description: yup.string().required("Description must be a string"),
+  town: yup.string().required("Town is required"),
+  province: yup.string().required("Province is required"),
+  rent: yup.number().required("Rent is required").default(0),
+});

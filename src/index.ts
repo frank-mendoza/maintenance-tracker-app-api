@@ -11,6 +11,8 @@ import path from "path";
 import morgan from "morgan";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
 
+import { v2 as cloudinary } from "cloudinary";
+
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import propertyRouter from "./routes/propertyRouter";
@@ -19,6 +21,12 @@ import { authenticateUser } from "./middleware/authMiddleware";
 dotenv.config();
 
 const app = express();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
 
 app.use(
   cors({

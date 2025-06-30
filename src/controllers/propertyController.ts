@@ -1,7 +1,11 @@
 import { StatusCodes } from "http-status-codes";
 import Property from "../models/Property";
 import { Request, Response } from "express";
-import { BadRequestError } from "../errors/customErrors";
+import { BadRequestError, NotFoundError } from "../errors/customErrors";
+import { formatImage } from "../middleware/multerMiddleware";
+
+import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
 
 export const createProperty = async (req: Request, res: Response) => {
   try {
@@ -16,7 +20,29 @@ export const createProperty = async (req: Request, res: Response) => {
       return;
     }
 
-    const newProperty = await Property.create({ ...req.body });
+    const imageUrls: { path: string; public_id: string }[] = [];
+
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files) {
+        const file64 = formatImage(file);
+        if (typeof file64 === "string") {
+          const uploadRes = await cloudinary.uploader.upload(file64, {
+            folder: "properties",
+          });
+          imageUrls.push({
+            path: uploadRes.secure_url,
+            public_id: uploadRes.public_id,
+          });
+        } else {
+          throw new BadRequestError("Invalid image format");
+        }
+      }
+    }
+
+    const newProperty = await Property.create({
+      ...req.body,
+      images: imageUrls, // Store as an array of URLs
+    });
 
     res.status(StatusCodes.CREATED).json({
       msg: "Property created successfully",
@@ -45,11 +71,11 @@ export const getAllProperties = async (req: any, res: any) => {
       ];
     }
 
-    if (type && type !== "all") {
+    if (type && type !== "") {
       queryObject.type = type;
     }
 
-    if (status && status !== "all") {
+    if (status && status !== "") {
       queryObject.status = status;
     }
 
@@ -85,6 +111,27 @@ export const getAllProperties = async (req: any, res: any) => {
 
 export const getProperty = async (req: Request, res: Response) => {
   try {
-    const property = await Property.findById(req.params.id);
-  } catch (error) {}
+    const { id } = req.params;
+
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValidId) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ msg: "Invalid MONGODB ID format", error: true });
+      return;
+    }
+
+    const property = await Property.findById(id);
+    if (!property) {
+      throw new NotFoundError("No property found with this ID");
+    }
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      property,
+    });
+  } catch (error) {
+    throw new BadRequestError("Something went wrong while fetching property!");
+  }
 };

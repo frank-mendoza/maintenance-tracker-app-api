@@ -7,6 +7,7 @@ import {
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { ValidationChain } from "express-validator";
 import User from "../models/User";
+import { APRTMENT_TYPE } from "../utils/constants";
 
 interface WithValidationErrors {
   (validatedValues: any[]): [ValidationChain[], RequestHandler];
@@ -89,9 +90,17 @@ export const validateInputProperty = withValidationErrors([
 
   body("description").isString().withMessage("Description must be a string"),
 
+  body("type")
+    .isIn(Object.values(APRTMENT_TYPE))
+    .withMessage("invalid apartment type"),
   body("rent")
     .isNumeric()
     .withMessage("Rent must be a number")
     .custom((val) => val >= 0)
     .withMessage("Rent must be 0 or greater"),
+  body("units")
+    .isNumeric()
+    .withMessage("Unit must be a number")
+    .custom((val) => val >= 0)
+    .withMessage("Unit must be 0 or greater"),
 ]); // remove falsy entries
