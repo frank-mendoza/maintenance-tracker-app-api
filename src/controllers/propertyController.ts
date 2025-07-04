@@ -5,7 +5,6 @@ import { BadRequestError, NotFoundError } from "../errors/customErrors";
 import { formatImage } from "../middleware/multerMiddleware";
 
 import { v2 as cloudinary } from "cloudinary";
-import mongoose from "mongoose";
 
 export const createProperty = async (req: Request, res: Response) => {
   try {
@@ -14,10 +13,11 @@ export const createProperty = async (req: Request, res: Response) => {
     });
 
     if (foundProperty) {
-      res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "Name already exist", error: true });
-      return;
+      res.status(StatusCodes.BAD_REQUEST).json({
+        message: "Property with this name already exists",
+        error: true,
+      });
+      // throw new BadRequestError("Property with this name already exists");
     }
 
     const imageUrls: { path: string; public_id: string }[] = [];
@@ -110,28 +110,67 @@ export const getAllProperties = async (req: any, res: any) => {
 };
 
 export const getProperty = async (req: Request, res: Response) => {
+  const property = await Property.findById(req.params.id);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    property,
+  });
+};
+
+export const updateProperty = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const property = await Property.findById(req.params.id);
+    if (!property) throw new NotFoundError("Property not found");
 
-    const isValidId = mongoose.Types.ObjectId.isValid(id);
-
-    if (!isValidId) {
-      res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: "Invalid MONGODB ID format", error: true });
-      return;
+    if (property.images && Array.isArray(property.images)) {
+      for (const img of property.images) {
+        if (img.public_id) {
+          await cloudinary.uploader.destroy(img.public_id);
+        }
+      }
     }
 
-    const property = await Property.findById(id);
-    if (!property) {
-      throw new NotFoundError("No property found with this ID");
+    const newImageUrls: { path: string; public_id: string }[] = [];
+
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files) {
+        const file64 = formatImage(file);
+        if (typeof file64 === "string") {
+          const uploadRes = await cloudinary.uploader.upload(file64, {
+            folder: "properties",
+          });
+          newImageUrls.push({
+            path: uploadRes.secure_url,
+            public_id: uploadRes.public_id,
+          });
+        } else {
+          throw new BadRequestError("Invalid image format");
+        }
+      }
     }
 
-    res.status(StatusCodes.OK).json({
-      success: true,
-      property,
-    });
+    // 🧩 Step 4: update property, include combined images
+    const updatedProperty = await Property.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+        images: newImageUrls,
+      },
+      { new: true }
+    );
+
+    res
+      .status(StatusCodes.OK)
+      .json({ property: updatedProperty, success: true });
   } catch (error) {
-    throw new BadRequestError("Something went wrong while fetching property!");
+    console.error("Error updating property:", error);
+    throw new BadRequestError("Failed to update property");
   }
+};
+
+export const deleteProperty = async (req: Request, res: Response) => {
+  const removedProperty = await Property.findByIdAndDelete(req.params.id);
+
+  res.status(StatusCodes.OK).json({ property: removedProperty });
 };

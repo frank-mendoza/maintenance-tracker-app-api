@@ -1,4 +1,4 @@
-import { body, validationResult } from "express-validator";
+import { body, param, validationResult } from "express-validator";
 import {
   BadRequestError,
   NotFoundError,
@@ -8,6 +8,8 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import { ValidationChain } from "express-validator";
 import User from "../models/User";
 import { APRTMENT_TYPE } from "../utils/constants";
+import Property from "../models/Property";
+import mongoose from "mongoose";
 
 interface WithValidationErrors {
   (validatedValues: any[]): [ValidationChain[], RequestHandler];
@@ -104,3 +106,14 @@ export const validateInputProperty = withValidationErrors([
     .custom((val) => val >= 0)
     .withMessage("Unit must be 0 or greater"),
 ]); // remove falsy entries
+
+export const validateProperty = withValidationErrors([
+  param("id").custom(async (value, { req }) => {
+    const isValidId = mongoose.Types.ObjectId.isValid(value);
+
+    if (!isValidId) throw new BadRequestError("Invalid MongoDB id");
+
+    const property = await Property.findById(value);
+    if (!property) throw new NotFoundError(`no property with id : ${value}`);
+  }),
+]);

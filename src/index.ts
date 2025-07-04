@@ -32,7 +32,7 @@ app.use(
   cors({
     origin: process.env.WEB_APP_ROUTE, // Explicitly set the allowed origin
     credentials: true, // Allow cookies and authentication headers
-    methods: ["GET", "POST"], // Specify allowed methods
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Specify allowed methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
   })
 );

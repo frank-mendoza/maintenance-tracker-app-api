@@ -61,6 +61,7 @@ const DataFilter = ({
           onOpenChange={onOpenFilter}
         >
           <Dialog.Trigger asChild>
+            {/* <Tooltip showArrow content="Filters"> */}
             <IconButton
               aria-label="Filter"
               variant={"subtle"}
@@ -71,6 +72,7 @@ const DataFilter = ({
               )}
               <BiFilter />
             </IconButton>
+            {/* </Tooltip> */}
           </Dialog.Trigger>
 
           <Dialog.Backdrop />

@@ -3,7 +3,7 @@ import axios, { AxiosRequestConfig } from "axios";
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export async function apiRequest(
-  method: "get" | "post" | "put" | "delete",
+  method: "get" | "post" | "put" | "delete" | "patch",
   endpoint: string,
   data?: any,
   config?: AxiosRequestConfig

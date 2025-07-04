@@ -13,7 +13,7 @@ export const fetchProperties = (queryObject: any) => {
   return apiRequest("get", `/property/all?${searchParams.toString()}`);
 };
 
-export const createProperty = (body: {
+export const propertyMutation = (body: {
   name: string;
   description: string;
   town: string;
@@ -22,6 +22,8 @@ export const createProperty = (body: {
   units: number;
   type: string;
   images: File[];
+  isUpdate?: boolean;
+  id?: string; // Optional for create, required for update
 }) => {
   const formData = new FormData();
 
@@ -42,7 +44,11 @@ export const createProperty = (body: {
       formData.append("images", file); // name must match .array('images') in backend
     });
   }
-  return apiRequest("post", `/property`, formData);
+  return apiRequest(
+    body.isUpdate ? "patch" : "post",
+    `/property/${body.isUpdate ? body.id : ""}`,
+    formData
+  );
 };
 
 export const getPropertyDetails = (id: string) => {

@@ -3,9 +3,8 @@ import UploadFile from "@/components/FileUpload";
 import Inputs from "@/components/inputs/Inputs";
 import SelectInput from "@/components/Select";
 import { toaster } from "@/components/ui/toaster";
-import { createProperty } from "@/lib/api/property";
+import { propertyMutation } from "@/lib/api/property";
 import { propertySchema } from "@/lib/formValidator";
-import useGlobalStore from "@/lib/store/useGlobalStore";
 import { IProperty } from "@/types/property.types";
 import {
   Button,
@@ -14,9 +13,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { BiPlus } from "react-icons/bi";
+import { BiPen, BiPlus } from "react-icons/bi";
 
 type PropertyFormData = {
   name: string;
@@ -28,15 +28,18 @@ type PropertyFormData = {
 
 const PropertyForm = ({
   type,
+  setTrigger,
   setIsOpenDialog,
   isOpenDialog,
   details,
 }: {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   isOpenDialog: boolean;
+  setTrigger: any;
   type: "create" | "update";
   details?: IProperty | null; // Optional for create, required for update
 }) => {
+  const params = useParams();
   const {
     register,
     handleSubmit,
@@ -59,7 +62,6 @@ const PropertyForm = ({
         },
     resolver: yupResolver(propertySchema),
   });
-  const { setLoadingSpinner } = useGlobalStore();
   const [images, setImages] = useState<File[]>([]);
   const [units, setUnits] = useState<number[]>([]);
   const [unitType, setUnitType] = useState<
@@ -77,14 +79,70 @@ const PropertyForm = ({
     }
   }, [details]);
 
+  interface UrlToFileParams {
+    url: string;
+    filename: string;
+    mimeType: string;
+  }
+
+  function extractFileInfoFromUrl(url: any) {
+    if (!url) return { fileName: null, extension: null };
+
+    // get file name (last part after '/')
+    const parts = url.split("/");
+    const fileName = parts[parts.length - 1];
+
+    // get extension without dot
+    const extMatch = fileName.match(/\.([^.]+)$/);
+    const extension = extMatch ? extMatch[1] : null;
+
+    return { fileName, extension };
+  }
+  async function urlToFile(url: UrlToFileParams["url"]): Promise<File> {
+    const res: Response = await fetch(url);
+    const { fileName, extension } = extractFileInfoFromUrl(res.url);
+    const mimeType = extension ? `image/${extension}` : "";
+    const blob: Blob = await res.blob();
+    return new File([blob], fileName, { type: mimeType });
+  }
+
+  useEffect(() => {
+    if (
+      type === "update" &&
+      isOpenDialog &&
+      details?.images?.length &&
+      images.length === 0
+    ) {
+      const loadFiles = async () => {
+        const files = await Promise.all(
+          (details?.images ?? []).map(async (img) => urlToFile(img.path))
+        );
+        const combined = [...images, ...files];
+
+        // Remove duplicates by file name
+        const uniqueFiles = Array.from(
+          new Map(combined.map((file) => [file.name, file])).values()
+        );
+
+        setImages(uniqueFiles);
+      };
+
+      loadFiles();
+    } else if (type === "create" && isOpenDialog) {
+      setImages([]);
+    }
+  }, [type, isOpenDialog]);
+
   const onSubmit = async (data: PropertyFormData) => {
     setLoading(true);
-    setLoadingSpinner(true);
-    const res: any = await createProperty({
+    // setLoadingSpinner(true);
+    const res: any = await propertyMutation({
       ...data,
       units: units[0],
       type: unitType[0],
       images,
+      isUpdate: type === "update",
+      id: type === "update" ? (params.propertyId as string) : undefined, // Only include id for update
     });
 
     if (res?.success) {
@@ -93,13 +151,15 @@ const PropertyForm = ({
         type: "success",
       });
       setIsOpenDialog(false);
+      setTrigger(true);
     } else {
       toaster.create({
-        description: res?.msg || "Failed to register. Please try again.",
+        description: res?.msg || `Failed to ${type}. Please try again.`,
         type: "error",
       });
     }
-    setLoadingSpinner(false);
+    // setLoadingSpinner(false);
+
     setLoading(false);
   };
 
@@ -185,7 +245,7 @@ const PropertyForm = ({
           register={register}
         />
 
-        <UploadFile setImages={setImages} />
+        <UploadFile type={type} images={images} setImages={setImages} />
       </VStack>
     </>
   );
@@ -193,7 +253,17 @@ const PropertyForm = ({
   return (
     <>
       <Button p={4} onClick={() => setIsOpenDialog(true)}>
-        <BiPlus /> {type === "create" ? "Add property" : "Update property"}
+        {type === "create" ? (
+          <>
+            {" "}
+            <BiPlus /> Add property
+          </>
+        ) : (
+          <>
+            <BiPen />
+            Update property
+          </>
+        )}
       </Button>
       <DialogPopup
         onSubmit={handleSubmit((data) => onSubmit(data))}
@@ -201,7 +271,7 @@ const PropertyForm = ({
         open={isOpenDialog}
         loading={loading}
         content={form}
-        title={"Create Property"}
+        title={type === "create" ? "Add property" : "Update property"}
         onClose={() => setIsOpenDialog(false)}
       />
     </>

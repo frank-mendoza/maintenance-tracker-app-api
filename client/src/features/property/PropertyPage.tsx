@@ -1,13 +1,11 @@
 "use client";
 
-import GroupedAvatars from "@/components/GroupedAvatars";
 import SelectInput from "@/components/Select";
 import {
   Box,
   Heading,
   SimpleGrid,
   Text,
-  Image,
   Flex,
   createListCollection,
   IconButton,
@@ -15,21 +13,18 @@ import {
   Center,
   VStack,
   Spinner,
-  Grid,
-  Link,
 } from "@chakra-ui/react";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { CiBoxList, CiGrid41 } from "react-icons/ci";
-import { FiMapPin } from "react-icons/fi";
-import { GoDotFill } from "react-icons/go";
-import { MdApartment } from "react-icons/md";
-import PropertyCard from "./components/PropertyCard";
+import PropertyCard, { PropertyCardList } from "./components/PropertyCard";
 import DataFilter from "@/components/DataFilter";
 import { fetchProperties } from "@/lib/api/property";
 import { toaster } from "@/components/ui/toaster";
 import { IProperty } from "@/types/property.types";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import PropertyForm from "./components/PropertyForm";
+import { BiRefresh } from "react-icons/bi";
+import { Tooltip } from "@/components/ui/tooltip";
 
 export const GridItemsList = ({
   label,
@@ -63,92 +58,6 @@ export const items = [
   },
 ];
 
-const PropertyCardList = ({ data }: { data: IProperty }) => {
-  return (
-    <Link
-      href={`/properties/${data._id}`}
-      textDecoration="none"
-      outline="none"
-      bg={"white"}
-      borderRadius={"md"}
-      p={3}
-      transition="all 0.2s"
-      _hover={{ boxShadow: "md" }}
-    >
-      <Grid templateColumns={`repeat(9, 1fr)`} gap="5" alignItems={"center"}>
-        <GridItem colSpan={1}>
-          <Image
-            borderRadius={"md"}
-            height={"80px"}
-            // width={"100%"}
-            width={200}
-            objectFit={"cover"}
-            src={data?.images?.[0]?.path || "https://placehold.co/400"}
-            alt="Green double couch with wooden legs"
-          />
-        </GridItem>
-        <GridItemsList
-          label={"Apartment Name"}
-          colSpan={2}
-          type={<Text>{data?.name}</Text>}
-        />
-        <GridItemsList
-          label={"Address"}
-          colSpan={1}
-          type={
-            <Flex gap={2} alignItems={"center"}>
-              <FiMapPin color="#a1a1aa" />
-              <Text fontSize={12} color={"gray.400"}>
-                {data?.location?.province} , {data?.location?.town}
-              </Text>
-            </Flex>
-          }
-        />
-
-        <GridItemsList
-          label={"Rent"}
-          type={
-            <Text fontSize={12} color={"gray.400"}>
-              ${data?.rent} / {data.type}
-            </Text>
-          }
-        />
-        <GridItemsList
-          label={"Type"}
-          colSpan={2}
-          type={
-            <Flex gap={2} alignItems={"center"}>
-              <MdApartment color="#a1a1aa" />
-              <Text fontSize={12} color={"gray.400"}>
-                {data.units} {data.type}
-              </Text>
-            </Flex>
-          }
-        />
-        <GridItemsList
-          label={"Status"}
-          type={
-            <Flex gap={2} alignItems={"center"}>
-              <GoDotFill size={24} color="#6fe099" />
-              <Text
-                fontSize={14}
-                textTransform={"capitalize"}
-                color={"#6fe099"}
-              >
-                {data?.status}
-              </Text>
-            </Flex>
-          }
-        />
-        <GridItemsList
-          label={"Tenants"}
-          type={<GroupedAvatars items={items} />}
-        />
-      </Grid>
-    </Link>
-  );
-};
-
 export default function PropertiesPage() {
   const { loadingSpiner, setLoadingSpinner } = useGlobalStore();
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -158,6 +67,7 @@ export default function PropertiesPage() {
     const parsed = stored === "2" ? 2 : 1;
     return parsed;
   });
+  const [trigger, setTrigger] = useState(true);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -201,11 +111,12 @@ export default function PropertiesPage() {
       setProperties(res?.properties || []);
     }
     setLoadingSpinner(false);
-  }, [filters, debouncedSearch, isOpenDialog]);
+    setTrigger(false);
+  }, [filters, debouncedSearch, isOpenDialog, trigger]);
 
   useEffect(() => {
     fetchUsers();
-  }, [filters, debouncedSearch, fetchUsers]);
+  }, [filters, debouncedSearch, fetchUsers, trigger]);
 
   const apartmentTypes = createListCollection({
     items: [
@@ -235,7 +146,7 @@ export default function PropertiesPage() {
   });
 
   const renderDataList = () => {
-    if (!isOpenDialog && loadingSpiner)
+    if (trigger && loadingSpiner)
       return (
         <VStack py={5} mt={5}>
           <Spinner
@@ -278,6 +189,105 @@ export default function PropertiesPage() {
     );
   };
 
+  const actionButtons = (
+    <>
+      <Tooltip showArrow content="Card view">
+        <IconButton
+          onClick={() => {
+            localStorage.setItem("grid_type", `${1}`);
+            setGridType(1);
+          }}
+          variant={gridType === 1 ? "solid" : "subtle"}
+          aria-label="GRIDS"
+        >
+          <CiGrid41 size={60} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip showArrow content="Grid view">
+        <IconButton
+          onClick={() => {
+            localStorage.setItem("grid_type", `${2}`);
+            setGridType(2);
+          }}
+          variant={gridType === 2 ? "solid" : "subtle"}
+          aria-label="LIST"
+        >
+          <CiBoxList size={60} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip showArrow content="Reset filters">
+        <IconButton
+          onClick={() => {
+            if (filterNumber > 0) {
+              setFilters({ type: "", status: "", sort: "" });
+              setFiltersTemp({ type: [], status: [], sort: [] });
+            }
+
+            if (search.length > 0) {
+              setSearch("");
+            }
+          }}
+          variant="subtle"
+          colorPalette="red"
+          aria-label="Call support"
+        >
+          <BiRefresh size={60} />
+        </IconButton>
+      </Tooltip>
+    </>
+  );
+
+  const filterNumber = Object.values(filters).filter(
+    (val) => typeof val === "string" && val.trim() !== ""
+  ).length;
+
+  const filtersFields = (
+    <>
+      <SelectInput
+        center
+        mb
+        label={"Type"}
+        placeholder="Select apartment type"
+        items={apartmentTypes}
+        onChange={(e: any) =>
+          setFiltersTemp({
+            ...filtersTemp,
+            type: e.value,
+          })
+        }
+        value={filtersTemp.type}
+      />
+      <SelectInput
+        center
+        mb
+        label={"Sort"}
+        placeholder="Sort by"
+        items={sorts}
+        onChange={(e: any) =>
+          setFiltersTemp({
+            ...filtersTemp,
+            sort: e.value,
+          })
+        }
+        value={filtersTemp.sort}
+      />
+      <SelectInput
+        center
+        mb
+        label={"Status"}
+        placeholder="Select status"
+        items={status}
+        onChange={(e: any) =>
+          setFiltersTemp({
+            ...filtersTemp,
+            status: e.value,
+          })
+        }
+        value={filtersTemp.status}
+      />
+    </>
+  );
+
   return (
     <Box p={6}>
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
@@ -288,95 +298,20 @@ export default function PropertiesPage() {
         actions={
           <PropertyForm
             type="create"
+            setTrigger={setTrigger}
             isOpenDialog={isOpenDialog}
             setIsOpenDialog={setIsOpenDialog}
           />
         }
-        actionButtons={
-          <>
-            {" "}
-            <IconButton
-              onClick={() => {
-                localStorage.setItem("grid_type", `${1}`);
-                setGridType(1);
-              }}
-              variant={gridType === 1 ? "solid" : "subtle"}
-              aria-label="Call support"
-            >
-              <CiGrid41 size={60} />
-            </IconButton>
-            <IconButton
-              onClick={() => {
-                localStorage.setItem("grid_type", `${2}`);
-                setGridType(2);
-              }}
-              variant={gridType === 2 ? "solid" : "subtle"}
-              aria-label="Call support"
-            >
-              <CiBoxList size={60} />
-            </IconButton>
-          </>
-        }
-        search={search}
-        onSearchChange={(e) => setSearch(e.target.value)}
-        isOpen={isOpen}
         onOpenFilter={(e) => setIsOpen(e.open)}
+        onSearchChange={(e) => setSearch(e.target.value)}
+        actionButtons={actionButtons}
         title={"Properties"}
-        filterNumber={
-          Object.values(filters).filter(
-            (val) => typeof val === "string" && val.trim() !== ""
-          ).length
-        }
-        filters={
-          <>
-            <SelectInput
-              center
-              mb
-              label={"Type"}
-              placeholder="Select apartment type"
-              items={apartmentTypes}
-              onChange={(e: any) =>
-                setFiltersTemp({
-                  ...filtersTemp,
-                  type: e.value,
-                })
-              }
-              value={filtersTemp.type}
-            />
-            <SelectInput
-              center
-              mb
-              label={"Sort"}
-              placeholder="Sort by"
-              items={sorts}
-              onChange={(e: any) =>
-                setFiltersTemp({
-                  ...filtersTemp,
-                  sort: e.value,
-                })
-              }
-              value={filtersTemp.sort}
-            />
-            <SelectInput
-              center
-              mb
-              label={"Status"}
-              placeholder="Select status"
-              items={status}
-              onChange={(e: any) =>
-                setFiltersTemp({
-                  ...filtersTemp,
-                  status: e.value,
-                })
-              }
-              value={filtersTemp.status}
-            />
-          </>
-        }
+        search={search}
+        isOpen={isOpen}
+        filterNumber={filterNumber}
+        filters={filtersFields}
         onCLoseFilter={() => {
-          setFilters({ type: "", status: "", sort: "" });
-          setFiltersTemp({ type: [], status: [], sort: [] });
-          setSearch("");
           setIsOpen(false);
         }}
         onSubmitFilter={() => {

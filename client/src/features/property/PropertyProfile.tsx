@@ -11,7 +11,6 @@ import {
 import { FiMapPin } from "react-icons/fi";
 import { GridItemsList, items } from "./PropertyPage";
 import { MdApartment } from "react-icons/md";
-import { GoDotFill } from "react-icons/go";
 import GroupedAvatars from "@/components/GroupedAvatars";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,36 +21,43 @@ import useGlobalStore from "@/lib/store/useGlobalStore";
 import { Loading } from "@/components/Loading";
 import RecentyAdded from "./components/RecentyAdded";
 import PropertyForm from "./components/PropertyForm";
+import MaintenanceStatus from "@/components/Status";
 
 const PropertyProfile = () => {
   const params = useParams();
   const { setLoadingSpinner, loadingSpiner } = useGlobalStore();
+  const [trigger, setTrigger] = useState(true);
   const [details, setDetails] = useState<IProperty | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isOpenDialog, setIsOpenDialog] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      setLoadingSpinner(true);
-      if (params?.propertyId) {
-        const response = await getPropertyDetails(params.propertyId as string);
-        if (response.error) {
-          toaster.create({
-            description:
-              response.error?.msg || "Error fetching property details!",
-            type: "error",
-          });
-        } else {
-          setDetails(response?.property);
-          const images = response?.property?.images || [];
-          if (images.length > 0) {
-            setSelectedImage(images[0]?.path);
+    if (trigger) {
+      (async () => {
+        setLoadingSpinner(true);
+        if (params?.propertyId) {
+          const response = await getPropertyDetails(
+            params.propertyId as string
+          );
+          if (response.error) {
+            toaster.create({
+              description:
+                response.error?.msg || "Error fetching property details!",
+              type: "error",
+            });
+          } else {
+            setDetails(response?.property);
+            const images = response?.property?.images || [];
+            if (images.length > 0) {
+              setSelectedImage(images[0]?.path);
+            }
           }
         }
-      }
-      setLoadingSpinner(false);
-    })();
-  }, [params]);
+        setTrigger((prev) => !prev);
+        setLoadingSpinner(false);
+      })();
+    }
+  }, [params, trigger]);
 
   if (loadingSpiner) return <Loading />;
   return (
@@ -61,6 +67,7 @@ const PropertyProfile = () => {
           Property Profile
         </Heading>
         <PropertyForm
+          setTrigger={setTrigger}
           details={details}
           type="update"
           isOpenDialog={isOpenDialog}
@@ -78,7 +85,7 @@ const PropertyProfile = () => {
             width={"100%"}
             alt=""
           />
-          <HStack gap={3} mt={5}>
+          <HStack gap={3} mt={5} overflowX="auto">
             {details?.images?.map((image, index) => (
               <Image
                 key={index}
@@ -148,12 +155,7 @@ const PropertyProfile = () => {
             />
             <GridItemsList
               label={"Maintenance Status"}
-              type={
-                <Flex gap={2} alignItems={"start"}>
-                  <GoDotFill size={24} color="#6fe099" />
-                  <Text color={"#6fe099"}>{details?.status}</Text>
-                </Flex>
-              }
+              type={<MaintenanceStatus status={details?.status} />}
             />
             <GridItemsList
               label={"Tenants"}
