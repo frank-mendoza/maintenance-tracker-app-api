@@ -14,16 +14,14 @@ import {
   VStack,
   Spinner,
 } from "@chakra-ui/react";
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { CiBoxList, CiGrid41 } from "react-icons/ci";
 import PropertyCard, { PropertyCardList } from "./components/PropertyCard";
 import DataFilter from "@/components/DataFilter";
 import { fetchProperties } from "@/lib/api/property";
 import { toaster } from "@/components/ui/toaster";
 import { IProperty } from "@/types/property.types";
-import useGlobalStore from "@/lib/store/useGlobalStore";
 import PropertyForm from "./components/PropertyForm";
-import { BiRefresh } from "react-icons/bi";
 import { Tooltip } from "@/components/ui/tooltip";
 
 export const GridItemsList = ({
@@ -59,7 +57,6 @@ export const items = [
 ];
 
 export default function PropertiesPage() {
-  const { loadingSpiner, setLoadingSpinner } = useGlobalStore();
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [properties, setProperties] = useState<IProperty[]>([]);
   const [gridType, setGridType] = useState<1 | 2>(() => {
@@ -67,10 +64,9 @@ export default function PropertiesPage() {
     const parsed = stored === "2" ? 2 : 1;
     return parsed;
   });
-  const [trigger, setTrigger] = useState(true);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-
+  const [loading, setLoading] = useState<boolean>(true);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filters, setFilters] = useState({
     type: "",
@@ -92,31 +88,30 @@ export default function PropertiesPage() {
     return () => clearTimeout(handler); // Cleanup on input change
   }, [search]);
 
-  const fetchUsers = useCallback(async () => {
-    setLoadingSpinner(true);
-    const query: any = {
-      ...filters,
-    };
-
-    if (debouncedSearch) query.search = debouncedSearch;
-
-    const res: any = await fetchProperties(query);
-
-    if (res.error) {
-      toaster.create({
-        description: res?.msg || "Error fetching data!",
-        type: "error",
-      });
-    } else {
-      setProperties(res?.properties || []);
-    }
-    setLoadingSpinner(false);
-    setTrigger(false);
-  }, [filters, debouncedSearch, isOpenDialog, trigger]);
-
   useEffect(() => {
-    fetchUsers();
-  }, [filters, debouncedSearch, fetchUsers, trigger]);
+    if (loading) {
+      (async () => {
+        setLoading(true);
+        const query: any = {
+          ...filters,
+        };
+
+        if (debouncedSearch) query.search = debouncedSearch;
+
+        const res: any = await fetchProperties(query);
+
+        if (res.error) {
+          toaster.create({
+            description: res?.msg || "Error fetching data!",
+            type: "error",
+          });
+        } else {
+          setProperties(res?.properties || []);
+        }
+        setLoading(false);
+      })();
+    }
+  }, [filters, debouncedSearch, loading]);
 
   const apartmentTypes = createListCollection({
     items: [
@@ -146,7 +141,7 @@ export default function PropertiesPage() {
   });
 
   const renderDataList = () => {
-    if (trigger && loadingSpiner)
+    if (loading)
       return (
         <VStack py={5} mt={5}>
           <Spinner
@@ -215,25 +210,6 @@ export default function PropertiesPage() {
           <CiBoxList size={60} />
         </IconButton>
       </Tooltip>
-      <Tooltip showArrow content="Reset filters">
-        <IconButton
-          onClick={() => {
-            if (filterNumber > 0) {
-              setFilters({ type: "", status: "", sort: "" });
-              setFiltersTemp({ type: [], status: [], sort: [] });
-            }
-
-            if (search.length > 0) {
-              setSearch("");
-            }
-          }}
-          variant="subtle"
-          colorPalette="red"
-          aria-label="Call support"
-        >
-          <BiRefresh size={60} />
-        </IconButton>
-      </Tooltip>
     </>
   );
 
@@ -288,6 +264,28 @@ export default function PropertiesPage() {
     </>
   );
 
+  const onRefresh = () => {
+    if (filterNumber > 0) {
+      setFilters({ type: "", status: "", sort: "" });
+      setFiltersTemp({ type: [], status: [], sort: [] });
+    }
+
+    if (search.length > 0) {
+      setSearch("");
+    }
+    setLoading(true);
+  };
+
+  const onSubmitFilter = () => {
+    setFilters({
+      type: filtersTemp.type[0] || "",
+      status: filtersTemp.status[0] || "",
+      sort: filtersTemp.sort[0] || "",
+    });
+    setIsOpen(false);
+    setLoading(true);
+  };
+
   return (
     <Box p={6}>
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
@@ -298,11 +296,12 @@ export default function PropertiesPage() {
         actions={
           <PropertyForm
             type="create"
-            setTrigger={setTrigger}
+            setTrigger={setLoading}
             isOpenDialog={isOpenDialog}
             setIsOpenDialog={setIsOpenDialog}
           />
         }
+        onRefresh={onRefresh}
         onOpenFilter={(e) => setIsOpen(e.open)}
         onSearchChange={(e) => setSearch(e.target.value)}
         actionButtons={actionButtons}
@@ -311,17 +310,8 @@ export default function PropertiesPage() {
         isOpen={isOpen}
         filterNumber={filterNumber}
         filters={filtersFields}
-        onCLoseFilter={() => {
-          setIsOpen(false);
-        }}
-        onSubmitFilter={() => {
-          setFilters({
-            type: filtersTemp.type[0] || "",
-            status: filtersTemp.status[0] || "",
-            sort: filtersTemp.sort[0] || "",
-          });
-          setIsOpen(false);
-        }}
+        onCLoseFilter={() => setIsOpen(false)}
+        onSubmitFilter={onSubmitFilter}
       />
 
       {renderDataList()}

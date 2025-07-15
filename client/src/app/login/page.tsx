@@ -20,6 +20,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    clearErrors,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(userLoginSchema),
@@ -55,6 +56,8 @@ export default function LoginPage() {
 
     setLoading(false);
   };
+
+  console.log(errors);
 
   return (
     <Box

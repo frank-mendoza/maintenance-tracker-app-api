@@ -43,6 +43,9 @@ const PropertyForm = ({
   const {
     register,
     handleSubmit,
+    clearErrors,
+    // setValue,
+    reset,
     formState: { errors },
   } = useForm<PropertyFormData>({
     defaultValues: details
@@ -78,6 +81,14 @@ const PropertyForm = ({
       // setImages([]);
     }
   }, [details]);
+
+  // useEffect(() => {
+  //   clearErrors('');
+  //   let roleId: string;
+  //   if (roles.length > 0) roleId = roles[0];
+  //   else roleId = "";
+  //   setValue("role", roleId);
+  // }, [roles]);
 
   interface UrlToFileParams {
     url: string;
@@ -152,13 +163,13 @@ const PropertyForm = ({
       });
       setIsOpenDialog(false);
       setTrigger(true);
+      reset();
     } else {
       toaster.create({
         description: res?.msg || `Failed to ${type}. Please try again.`,
         type: "error",
       });
     }
-    // setLoadingSpinner(false);
 
     setLoading(false);
   };
@@ -215,6 +226,7 @@ const PropertyForm = ({
             items={unitsList}
             placeholder={"Enter units"}
             label={"Number of units"}
+            // errors={errors}
             value={units}
             onChange={(e: any) => setUnits(e.value)}
           />
@@ -222,6 +234,7 @@ const PropertyForm = ({
             width={"100%"}
             vertical
             items={types}
+            // errors={errors}
             placeholder={"Enter aprtment types"}
             label={"Apartment Type"}
             value={unitType}
@@ -272,7 +285,11 @@ const PropertyForm = ({
         loading={loading}
         content={form}
         title={type === "create" ? "Add property" : "Update property"}
-        onClose={() => setIsOpenDialog(false)}
+        onClose={() => {
+          setIsOpenDialog(false);
+          reset();
+          clearErrors();
+        }}
       />
     </>
   );

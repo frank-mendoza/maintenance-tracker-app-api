@@ -6,11 +6,13 @@ export interface IUser extends Document {
   name: string;
   lastName: string;
   email: string;
-  password: string; // store hashed password
+  password?: string; // store hashed password
   role: UserRole;
+  phone: string;
   assignedRequests?: string[]; // maintenance IDs (for technicians)
   propertiesOwned?: string[]; // property IDs (for landlords)
   createdAt: Date;
+  manuallyCreated?: boolean; // flag to indicate if the user was created manually
   isVerified: { type: Boolean; default: false };
 }
 
@@ -19,8 +21,10 @@ const userSchema = new Schema<IUser>(
     name: { type: String, required: true },
     lastName: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
+    manuallyCreated: { type: Boolean, default: false },
+    phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false, select: false },
     role: {
       type: String,
       enum: ["tenant", "landlord", "technician"],

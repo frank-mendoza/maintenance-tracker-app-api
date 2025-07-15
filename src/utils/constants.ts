@@ -4,3 +4,10 @@ export const APRTMENT_TYPE = {
   BOARDING_HOUSE: "boarding house",
   CONDO: "condo",
 };
+
+export const USER_TYPES = {
+  ADMIN: "admin",
+  TENANT: "tenant",
+  LANDLORD: "landlord",
+  TECHINICIAN: "technician",
+};

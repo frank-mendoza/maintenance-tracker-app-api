@@ -88,6 +88,7 @@ const PropertyProfile = () => {
           <HStack gap={3} mt={5} overflowX="auto">
             {details?.images?.map((image, index) => (
               <Image
+              border='1px solid grey'
                 key={index}
                 src={image.path}
                 cursor="pointer"
@@ -108,7 +109,7 @@ const PropertyProfile = () => {
           </Heading>
           <Flex alignItems={"center"} gap={2}>
             <FiMapPin color="#a1a1aa" />
-            <Text color="gray.400">{details?.location.province}</Text>
+            <Text color="gray.400">{details?.location?.province}</Text>
           </Flex>
 
           <Box my={5}>

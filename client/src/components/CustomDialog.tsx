@@ -1,4 +1,11 @@
-import { Button, CloseButton, Dialog, Portal, Spinner } from "@chakra-ui/react";
+import {
+  Button,
+  CloseButton,
+  ConditionalValue,
+  Dialog,
+  Portal,
+  Spinner,
+} from "@chakra-ui/react";
 
 type CustomDialogProps = {
   onOpenChange: (e: any) => void;
@@ -8,6 +15,9 @@ type CustomDialogProps = {
   title: React.ReactNode;
   onSubmit: () => void;
   onClose: () => void;
+  size?: ConditionalValue<
+    "sm" | "md" | "lg" | "xl" | "xs" | "cover" | "full" | undefined
+  >;
 };
 
 const DialogPopup = ({
@@ -18,11 +28,12 @@ const DialogPopup = ({
   onSubmit,
   onClose,
   loading,
+  size,
 }: CustomDialogProps) => {
   return (
     <Dialog.Root
       closeOnInteractOutside={false}
-      size={"lg"}
+      size={size || "lg"}
       lazyMount
       open={open}
       onOpenChange={onOpenChange}
@@ -40,9 +51,16 @@ const DialogPopup = ({
 
                 <Dialog.Footer p={0} mt={5}>
                   <Dialog.ActionTrigger asChild>
-                    <Button variant="outline">Cancel</Button>
+                    <Button onClick={onClose} variant="outline">
+                      Cancel
+                    </Button>
                   </Dialog.ActionTrigger>
-                  <Button minWidth={100} type="submit" disabled={loading}>
+                  <Button
+                    minWidth={100}
+                    colorPalette={"green"}
+                    type="submit"
+                    disabled={loading}
+                  >
                     {loading ? <Spinner /> : "Save"}
                   </Button>
                 </Dialog.Footer>

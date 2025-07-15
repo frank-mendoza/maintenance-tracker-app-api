@@ -9,9 +9,10 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { ReactNode } from "react";
-import { BiFilter } from "react-icons/bi";
+import { BiFilter, BiRefresh } from "react-icons/bi";
 
 import "./DataFilter.css";
+import { Tooltip } from "./ui/tooltip";
 
 interface DataFilterProps {
   search: string;
@@ -24,7 +25,8 @@ interface DataFilterProps {
   onSubmitFilter: () => void;
   actions?: ReactNode;
   actionButtons?: ReactNode;
-  filterNumber: number;
+  filterNumber?: number;
+  onRefresh: () => void;
 }
 const DataFilter = ({
   filterNumber,
@@ -38,6 +40,7 @@ const DataFilter = ({
   onSubmitFilter,
   actions,
   actionButtons,
+  onRefresh,
 }: DataFilterProps) => {
   return (
     <Stack
@@ -56,23 +59,22 @@ const DataFilter = ({
         />
         <Dialog.Root
           lazyMount
+          closeOnInteractOutside={false}
           open={isOpen}
           placement={"center"}
           onOpenChange={onOpenFilter}
         >
           <Dialog.Trigger asChild>
-            {/* <Tooltip showArrow content="Filters"> */}
             <IconButton
               aria-label="Filter"
               variant={"subtle"}
               className="filter"
             >
-              {filterNumber > 0 && (
+              {filterNumber !== undefined && filterNumber > 0 && (
                 <div className="badge-alert">{filterNumber}</div>
               )}
               <BiFilter />
             </IconButton>
-            {/* </Tooltip> */}
           </Dialog.Trigger>
 
           <Dialog.Backdrop />
@@ -88,7 +90,7 @@ const DataFilter = ({
               <Dialog.Footer>
                 <Stack direction="row" justify="flex-end">
                   <Button px={4} onClick={onCLoseFilter} variant="ghost">
-                    Reset
+                    Close
                   </Button>
                   <Button px={4} colorScheme="blue" onClick={onSubmitFilter}>
                     Apply
@@ -99,6 +101,16 @@ const DataFilter = ({
           </Dialog.Positioner>
         </Dialog.Root>
         {actionButtons && actionButtons}
+        <Tooltip showArrow content="Reset filters">
+          <IconButton
+            onClick={onRefresh}
+            variant="subtle"
+            colorPalette="red"
+            aria-label="Call support"
+          >
+            <BiRefresh size={60} />
+          </IconButton>
+        </Tooltip>
       </Flex>
       {actions && actions}
     </Stack>

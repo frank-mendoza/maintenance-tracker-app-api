@@ -7,7 +7,7 @@ import {
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { ValidationChain } from "express-validator";
 import User from "../models/User";
-import { APRTMENT_TYPE } from "../utils/constants";
+import { APRTMENT_TYPE, USER_TYPES } from "../utils/constants";
 import Property from "../models/Property";
 import mongoose from "mongoose";
 
@@ -22,6 +22,8 @@ type FieldOptions = {
   lastName?: boolean;
   location?: boolean;
   isLogin?: boolean;
+  role?: boolean;
+  phone?: boolean;
   // add new fields as needed
 };
 
@@ -77,6 +79,13 @@ export const validateInputFields = (fields: FieldOptions) =>
 
       fields.lastName &&
         body("lastName").notEmpty().withMessage("Last name is required"),
+      fields.phone &&
+        body("phone").notEmpty().withMessage("Phone is required").isNumeric(),
+      fields.role &&
+        body("role")
+          .notEmpty()
+          .isIn(Object.values(USER_TYPES))
+          .withMessage("Role is required"),
 
       fields.location &&
         body("location").notEmpty().withMessage("Location is required"),
@@ -115,5 +124,16 @@ export const validateProperty = withValidationErrors([
 
     const property = await Property.findById(value);
     if (!property) throw new NotFoundError(`no property with id : ${value}`);
+  }),
+]);
+
+export const validateUser = withValidationErrors([
+  param("id").custom(async (value, { req }) => {
+    const isValidId = mongoose.Types.ObjectId.isValid(value);
+
+    if (!isValidId) throw new BadRequestError("Invalid MongoDB id");
+
+    const user = await User.findById(value);
+    if (!user) throw new NotFoundError(`no user with id : ${value}`);
   }),
 ]);

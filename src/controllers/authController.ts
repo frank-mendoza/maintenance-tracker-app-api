@@ -4,6 +4,7 @@ import User from "../models/User";
 import { StatusCodes } from "http-status-codes";
 import {
   BadRequestError,
+  NotFoundError,
   UnauthenticatedError,
   UnauthorizedError,
 } from "../errors/customErrors";
@@ -57,12 +58,19 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: req.body.email }).select(
+      "+password"
+    );
 
     if (!user) {
       throw new UnauthenticatedError("Email does not exist");
     }
 
+    if (user.manuallyCreated) {
+      throw new UnauthorizedError(
+        "User account is not set up yet. Please check your email for the setup link."
+      );
+    }
     if (!user.isVerified) {
       throw new UnauthorizedError(
         "Email is not yet verified, Please check your email to verify!"
@@ -71,7 +79,7 @@ export const login = async (
 
     const isPasswordValid = await comparePassword(
       req.body.password,
-      user.password
+      user?.password as string
     );
 
     if (!isPasswordValid) throw new UnauthenticatedError("Invalid password");
@@ -149,5 +157,113 @@ export const verifyEmail = async (
   } catch (error: any) {
     console.error("Verification failed:", error.message || error);
     next(new UnauthenticatedError("Failed to verify email!"));
+  }
+};
+
+//verify user setup token
+export const verifyUserSetup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const { setup_account_token } = req.query;
+
+  if (!setup_account_token || typeof setup_account_token !== "string") {
+    return next(new UnauthenticatedError("Invalid user setup token!"));
+  }
+
+  try {
+    const decoded = verifyJWT(setup_account_token);
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return next(
+        new UnauthenticatedError("No user found for this setup token.")
+      );
+    }
+
+    if (!user.manuallyCreated) {
+      res.status(StatusCodes.ACCEPTED).json({
+        success: true,
+        isVerified: true,
+        user,
+        msg: "Account is already set up. Please login.",
+      });
+      return;
+    }
+
+    res.cookie("setup_account_token", {
+      httpOnly: true,
+      expires: new Date(Date.now()),
+    });
+
+    user.manuallyCreated = false; // Mark as set up
+    user.save(); // Save the user with the manuallyCreated flag
+    res.status(StatusCodes.OK).json({
+      success: true,
+      user,
+      msg: "Setup token verified successfully",
+    });
+  } catch (error: any) {
+    console.error("Verification failed:", error.message || error);
+    next(
+      new UnauthenticatedError(
+        error?.message || "Failed to verify setup token!"
+      )
+    );
+  }
+};
+
+export const sendVerificationToken = async (req: Request, res: Response) => {
+  const { userId, userEmail } = req.body;
+  try {
+    const token = createJWT({ userId });
+
+    // Send email
+    const emailRes = await sendVerificationEmail(userEmail, token, true);
+
+    if (!emailRes.data)
+      throw new BadRequestError("Failed to send verification token!");
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      msg: "Successfully sent user setup token",
+    });
+  } catch (error) {
+    throw new BadRequestError("Unable to send verification token!");
+  }
+};
+
+export const newUserSetup = async (req: Request, res: Response) => {
+  try {
+    const hashedPassword = await hashPassword(req.body.password);
+    req.body.password = hashedPassword;
+
+    const user = await User.findByIdAndUpdate(
+      req.body.id,
+      {
+        ...req.body,
+      },
+      { new: true }
+    );
+
+    if (!user) throw new NotFoundError("No user found!");
+
+    // Generate email verification token
+    const token = createJWT({ userId: user?._id?.toString() });
+
+    // Send email
+    const emailRes = await sendVerificationEmail(user?.email as string, token);
+
+    if (!emailRes.data)
+      throw new BadRequestError("Failed to send verification token!");
+
+    res.status(StatusCodes.CREATED).json({
+      msg: "Successfully setup user",
+      success: true,
+    });
+  } catch (error) {
+    console.error("User setup error", error);
+    throw new BadRequestError("User setup error");
   }
 };

@@ -5,7 +5,7 @@ import { verifyUserEmail } from "@/lib/api/auth";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import useGlobalStore from "@/lib/store/useGlobalStore";
-import { Button, Center, Text } from "@chakra-ui/react";
+import { Button, Center, Heading, Text } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BiCheck, BiError } from "react-icons/bi";
@@ -49,10 +49,10 @@ const VerifyEmail = () => {
     if (isVerifiedErr)
       return (
         <>
-          <BiError color="red" size={50} />
-          <Text mt={2} color="colorPalette.600">
+          <BiError color="red" size={100} />
+          <Heading textAlign="center" color="red.500">
             Failed to Verify Token
-          </Text>
+          </Heading>
         </>
       );
 

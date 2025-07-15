@@ -20,10 +20,22 @@ export const userRegisterSchema = yup.object({
     .string()
     .required("Password is required")
     .min(8, "Password must be at least 8 characters"),
-  // .matches(/[A-Z]/, "Must contain an uppercase letter")
-  // .matches(/[a-z]/, "Must contain a lowercase letter")
-  // .matches(/[0-9]/, "Must contain a number")
-  // .matches(/[@$!%*?&#]/, "Must contain a special character"),
+
+  confirmPassword: yup
+    .string()
+    .required("Please confirm your password")
+    .oneOf([yup.ref("password")], "Passwords must match"),
+});
+export const userSetupschema = yup.object({
+  email: yup
+    .string()
+    .required("Email is required")
+    .email("Must be a valid email"),
+
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(8, "Password must be at least 8 characters"),
 
   confirmPassword: yup
     .string()
@@ -46,4 +58,15 @@ export const propertySchema = yup.object({
   town: yup.string().required("Town is required"),
   province: yup.string().required("Province is required"),
   rent: yup.number().required("Rent is required").default(0),
+});
+
+export const tenantSchema = yup.object({
+  role: yup.string().required("Role is required"),
+  phone: yup.string().required("Phone is required"),
+  name: yup.string().required("Name must be a string"),
+  email: yup
+    .string()
+    .required("Email is required")
+    .email("Must be a valid email"),
+  lastName: yup.string().required("Last name is required"),
 });
