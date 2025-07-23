@@ -12,5 +12,6 @@ export const getCurrentUser = async (req: any, res: Response) => {
   }
   res.status(StatusCodes.OK).json({
     user: formattedUser,
+    success: true,
   });
 };

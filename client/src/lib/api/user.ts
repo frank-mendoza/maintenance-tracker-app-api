@@ -24,6 +24,7 @@ export const userMutation = (body: {
   email: string;
   role: string;
   isUpdate?: boolean;
+  images?: File[];
   id?: string; // Optional for create, required for update
 }) => {
   const formData = new FormData();
@@ -36,11 +37,12 @@ export const userMutation = (body: {
   formData.append("role", String(body.role));
 
   // Append multiple images
-  // if (body.images && body.images.length > 0) {
-  //   Array.from(body.images).forEach((file: File) => {
-  //     formData.append("images", file); // name must match .array('images') in backend
-  //   });
-  // }
+  if (body.images && body.images.length > 0) {
+    Array.from(body.images).forEach((file: File) => {
+      formData.append("images", file); // name must match .array('images') in backend
+    });
+  }
+
   return apiRequest(
     body.isUpdate ? "patch" : "post",
     `/user/${body.isUpdate ? body.id : ""}`,

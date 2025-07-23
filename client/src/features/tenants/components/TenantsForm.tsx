@@ -2,22 +2,24 @@ import DialogPopup from "@/components/CustomDialog";
 import Inputs from "@/components/inputs/Inputs";
 import SelectInput from "@/components/Select";
 import { toaster } from "@/components/ui/toaster";
+import { ROLES } from "@/constants/constants";
 import { userMutation } from "@/lib/api/user";
 import { tenantSchema } from "@/lib/formValidator";
-import { IUser } from "@/types/user.type";
+import { User } from "@/types/user.type";
 import { Box, Button, createListCollection, VStack } from "@chakra-ui/react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { BiPlus } from "react-icons/bi";
 
-type TenantsFormData = {
-  name: string;
-  lastName: string;
-  role: string;
-  phone: string;
-  email: string;
-};
+// type TenantsFormData = {
+//   name: string;
+//   lastName: string;
+//   role: string;
+//   phone: string;
+//   email: string;
+//   status?: string;
+// };
 
 const TenantsForm = ({
   type,
@@ -31,7 +33,7 @@ const TenantsForm = ({
   isOpenDialog: boolean;
   setTrigger: Dispatch<SetStateAction<boolean>>;
   type: "create" | "update";
-  details?: IUser | null;
+  details?: User | null;
   setUserDetails?: any;
 }) => {
   const {
@@ -41,7 +43,7 @@ const TenantsForm = ({
     setValue,
     reset,
     formState: { errors },
-  } = useForm<TenantsFormData>({
+  } = useForm<any>({
     defaultValues: details
       ? {
           name: details.name || "",
@@ -80,7 +82,7 @@ const TenantsForm = ({
     setValue("role", roleId);
   }, [clearErrors, roles, setValue]);
 
-  const onSubmit = async (data: TenantsFormData) => {
+  const onSubmit = async (data: any) => {
     setLoading(true);
     const res: any = await userMutation({
       ...data,
@@ -107,12 +109,8 @@ const TenantsForm = ({
     setLoading(false);
   };
 
-  const unitsList = createListCollection({
-    items: [
-      { label: "Tenant", value: "tenant" },
-      { label: "Landlord", value: "landlord" },
-      { label: "Technician", value: "technician" },
-    ],
+  const roleList = createListCollection({
+    items: ROLES,
   });
 
   const fields = [
@@ -140,6 +138,7 @@ const TenantsForm = ({
       disabled: type === "update",
     },
   ];
+
   const statusInput = {
     label: "Status",
     placeholder: "",
@@ -170,7 +169,7 @@ const TenantsForm = ({
           <SelectInput
             width={"100%"}
             vertical
-            items={unitsList}
+            items={roleList}
             placeholder={"Select role"}
             label={"Role"}
             value={roles}

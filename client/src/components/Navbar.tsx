@@ -9,7 +9,6 @@ import {
   useDisclosure,
   Stack,
   Link,
-  Avatar,
   Text,
   Menu,
 } from "@chakra-ui/react";
@@ -17,6 +16,7 @@ import NextLink from "next/link";
 import { toaster } from "./ui/toaster";
 import { useRouter } from "next/navigation";
 import { logoutUser } from "@/lib/api/auth";
+import ProfileAvatar from "./ProfileAvatar";
 
 const Links = [
   { label: "Home", href: "/" },
@@ -87,20 +87,21 @@ export default function Navbar() {
           </Stack>
 
           <Menu.Root>
-            <Menu.Trigger asChild cursor={"pointer"}>
-              <Avatar.Root>
-                <Avatar.Fallback name={user?.name} />
-                <Avatar.Image src="https://bit.ly/sage-adebayo" />
-              </Avatar.Root>
+            <Menu.Trigger cursor={"pointer"}>
+              <ProfileAvatar user={user} />
             </Menu.Trigger>
             <Menu.Positioner
-              mt={"16px"}
-              top={"2% !important"}
-              left={"auto !important"}
-              right={"84px"}
+            // mt={"16px"}
+            // top={"2% !important"}
+            // left={"auto !important"}
+            // right={"84px"}
             >
               <Menu.Content>
-                <Menu.Item p={2} value="new-txt">
+                <Menu.Item
+                  p={2}
+                  value="new-txt"
+                  onClick={() => router.push("/account")}
+                >
                   Account
                 </Menu.Item>
                 <Menu.Item p={2} value="new-file" onClick={handleSignOut}>

@@ -42,7 +42,7 @@ router
   .route("/:id")
   // .get(...validateProperty, getProperty)
   .patch(
-    upload.array("images", 10),
+    upload.array("images", 2),
     ...validateUser,
     ...validateInputFields({
       name: true,

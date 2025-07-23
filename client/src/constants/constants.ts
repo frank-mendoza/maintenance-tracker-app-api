@@ -12,3 +12,9 @@ export const MAINTENANCE_STATUS = {
     color: "#f87171",
   },
 } as const;
+
+export const ROLES = [
+  { label: "Tenant", value: "tenant" },
+  { label: "Landlord", value: "landlord" },
+  { label: "Technician", value: "technician" },
+];

@@ -15,13 +15,13 @@ import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { Pagination } from "@chakra-ui/react";
 import { ReactNode, useEffect, useState, useCallback } from "react";
 import { toaster } from "./ui/toaster";
-import { IUser } from "@/types/user.type";
 import SelectInput from "./Select";
+import { User } from "@/types/user.type";
 
 type Column = {
   key: string;
   label: string;
-  render?: (row: IUser) => React.ReactNode;
+  render?: (row: User) => React.ReactNode;
   sortable?: boolean; // Indicates if the column is sortable
 };
 
@@ -48,7 +48,7 @@ const DataTable = ({
   isReset,
   setIsReset,
 }: DataTableProps) => {
-  const [data, setData] = useState<IUser[]>([]);
+  const [data, setData] = useState<User[]>([]);
   const [sortBy, setSortBy] = useState<string>(""); // e.g. "tenantName"
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>("asc");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -106,7 +106,7 @@ const DataTable = ({
             type: "error",
           });
         } else {
-          setData(res.users);
+          setData(res.data);
           setTotalItems(res.total || 0);
           setTotalPages(res.numOfPages);
         }
@@ -236,7 +236,7 @@ const DataTable = ({
 
       <Flex justifyContent={"space-between"} alignItems={"center"}>
         <SelectInput
-          width={100}
+          width={110}
           vertical
           items={items}
           placeholder={""}

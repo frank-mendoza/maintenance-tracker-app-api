@@ -20,7 +20,7 @@ router.post(
   ...validateInputProperty,
   createProperty
 );
-router.get("/all", getAllProperties);
+router.get("/properties", getAllProperties);
 
 router
   .route("/:id")

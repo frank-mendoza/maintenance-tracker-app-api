@@ -6,7 +6,10 @@ import { getPaginationAndSort } from "../utils/paginationAndSort";
 import { BadRequestError, NotFoundError } from "../errors/customErrors";
 import User from "../models/User";
 import { createJWT } from "../utils/token";
+
+import { v2 as cloudinary } from "cloudinary";
 import { sendVerificationEmail } from "../utils/emailServices";
+import { formatImage } from "../middleware/multerMiddleware";
 
 export const getAllUsers = async (req: any, res: any) => {
   try {
@@ -61,7 +64,7 @@ export const getAllUsers = async (req: any, res: any) => {
       total: totalUsers,
       numOfPages,
       currentPage: page,
-      users: indexedUsers,
+      data: indexedUsers,
     });
   } catch (error) {
     throw new BadRequestError("Failed to fetch users");
@@ -103,11 +106,46 @@ export const updateUser = async (req: Request, res: Response) => {
     const user = await User.findById(req.params.id);
     if (!user) throw new NotFoundError("User not found");
 
+    if (Array.isArray(req.files) && req.files.length > 1) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ msg: "Only 1 profile picture is needed", error: true });
+      return;
+    }
+
+    if (user.images && Array.isArray(user.images)) {
+      for (const img of user.images) {
+        if (img.public_id) {
+          await cloudinary.uploader.destroy(img.public_id);
+        }
+      }
+    }
+
+    const newImageUrls: { path: string; public_id: string }[] = [];
+
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files) {
+        const file64 = formatImage(file);
+        if (typeof file64 === "string") {
+          const uploadRes = await cloudinary.uploader.upload(file64, {
+            folder: "properties",
+          });
+          newImageUrls.push({
+            path: uploadRes.secure_url,
+            public_id: uploadRes.public_id,
+          });
+        } else {
+          throw new BadRequestError("Invalid image format");
+        }
+      }
+    }
+
     // 🧩 Step 4: update user, include combined images
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       {
         ...req.body,
+        images: newImageUrls,
       },
       { new: true }
     );

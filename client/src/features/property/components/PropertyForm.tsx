@@ -5,6 +5,7 @@ import SelectInput from "@/components/Select";
 import { toaster } from "@/components/ui/toaster";
 import { propertyMutation } from "@/lib/api/property";
 import { propertySchema } from "@/lib/formValidator";
+import { urlToFile } from "@/lib/helper/helper";
 import { IProperty } from "@/types/property.types";
 import {
   Button,
@@ -16,7 +17,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { BiPen, BiPlus } from "react-icons/bi";
+import { BiPlus } from "react-icons/bi";
+import { FaPen } from "react-icons/fa";
 
 type PropertyFormData = {
   name: string;
@@ -82,41 +84,6 @@ const PropertyForm = ({
     }
   }, [details]);
 
-  // useEffect(() => {
-  //   clearErrors('');
-  //   let roleId: string;
-  //   if (roles.length > 0) roleId = roles[0];
-  //   else roleId = "";
-  //   setValue("role", roleId);
-  // }, [roles]);
-
-  interface UrlToFileParams {
-    url: string;
-    filename: string;
-    mimeType: string;
-  }
-
-  function extractFileInfoFromUrl(url: any) {
-    if (!url) return { fileName: null, extension: null };
-
-    // get file name (last part after '/')
-    const parts = url.split("/");
-    const fileName = parts[parts.length - 1];
-
-    // get extension without dot
-    const extMatch = fileName.match(/\.([^.]+)$/);
-    const extension = extMatch ? extMatch[1] : null;
-
-    return { fileName, extension };
-  }
-  async function urlToFile(url: UrlToFileParams["url"]): Promise<File> {
-    const res: Response = await fetch(url);
-    const { fileName, extension } = extractFileInfoFromUrl(res.url);
-    const mimeType = extension ? `image/${extension}` : "";
-    const blob: Blob = await res.blob();
-    return new File([blob], fileName, { type: mimeType });
-  }
-
   useEffect(() => {
     if (
       type === "update" &&
@@ -139,10 +106,8 @@ const PropertyForm = ({
       };
 
       loadFiles();
-    } else if (type === "create" && isOpenDialog) {
-      setImages([]);
     }
-  }, [type, isOpenDialog]);
+  }, [type, isOpenDialog, details?.images, images]);
 
   const onSubmit = async (data: PropertyFormData) => {
     setLoading(true);
@@ -158,7 +123,8 @@ const PropertyForm = ({
 
     if (res?.success) {
       toaster.create({
-        description: "Successfully registered!",
+        description:
+          type === "update" ? "Successfully updated!" : "Successfully created!",
         type: "success",
       });
       setIsOpenDialog(false);
@@ -273,7 +239,7 @@ const PropertyForm = ({
           </>
         ) : (
           <>
-            <BiPen />
+            <FaPen />
             Update property
           </>
         )}

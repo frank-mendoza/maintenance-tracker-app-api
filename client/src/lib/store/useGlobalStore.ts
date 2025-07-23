@@ -1,15 +1,5 @@
+import { User } from "@/types/user.type";
 import { create } from "zustand";
-
-interface User {
-  name: string;
-  lastName: string;
-  email: string;
-  password: string; // store hashed password
-  role: "tenant" | "landlord" | "technician";
-  assignedRequests?: string[]; // maintenance IDs (for technicians)
-  propertiesOwned?: string[]; // property IDs (for landlords)
-  createdAt: Date;
-}
 
 interface GlobalStoreState {
   user: User | null;

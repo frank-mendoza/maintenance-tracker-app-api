@@ -18,10 +18,11 @@ export function MainProvider({ children }: { children: ReactNode }) {
     const isPublicRoute =
       pathname?.startsWith("/login") || pathname?.startsWith("/register");
     if ((user || localUser) && isPublicRoute) {
-      router.push("/overview");
+      if (user?.role === "tenant") router.push("/maintenance-logs");
+      else router.push("/overview");
     }
     setLoading(false);
-  }, [user, pathname]);
+  }, [user, pathname, router]);
 
   if (loading) return <></>;
   return (

@@ -106,10 +106,10 @@ export const getAllProperties = async (req: any, res: any) => {
     }));
 
     res.status(StatusCodes.CREATED).json({
-      totalProperties,
+      total: totalProperties,
       numOfPages,
       currentPage: page,
-      properties: indexedProperties,
+      data: indexedProperties,
     });
   } catch (error) {
     throw new BadRequestError("Failed to fetch properties");

@@ -5,7 +5,6 @@
 import Inputs from "@/components/inputs/Inputs";
 import { toaster } from "@/components/ui/toaster";
 import { loginUser } from "@/lib/api/auth";
-import { fetchUser } from "@/lib/api/user";
 import { userLoginSchema } from "@/lib/formValidator";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { Box, Button, Heading, Spinner, VStack } from "@chakra-ui/react";
@@ -20,7 +19,6 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    clearErrors,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(userLoginSchema),
@@ -47,17 +45,14 @@ export default function LoginPage() {
         type: "success",
       });
 
-      const user: any = await fetchUser();
-      if (user?.status === 200) {
-        setUser(user.data.user);
-      }
-      router.push("/overview");
+      setUser(res.user);
+
+      if (res.user?.role === "tenant") router.push("/maintenance-logs");
+      else router.push("/overview");
     }
 
     setLoading(false);
   };
-
-  console.log(errors);
 
   return (
     <Box

@@ -1,7 +1,6 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import DataTable from "@/components/DataTable";
 import { Box, Flex, Heading, IconButton } from "@chakra-ui/react";
 import { BiTrash } from "react-icons/bi";
 import { FaEye } from "react-icons/fa";
@@ -65,12 +64,11 @@ export default function MaintenanceLogs() {
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
         <Heading size="lg">Maintenance Logs</Heading>
       </Flex>
-      <DataTable
-        title="Maintenance Logs"
+      {/* <DataTable
         searchKey={"propertyName"}
         columns={columns}
         data={data}
-      />
+      /> */}
     </Box>
   );
 }

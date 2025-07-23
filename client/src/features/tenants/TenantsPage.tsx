@@ -16,10 +16,14 @@ import { useState } from "react";
 import { BiTrash } from "react-icons/bi";
 import { FaEye } from "react-icons/fa";
 import TenantsForm from "./components/TenantsForm";
-import { IUser } from "@/types/user.type";
 import RemovePopup from "./components/RemovePopup";
-export default function TenantsPage() {
+import useGlobalStore from "@/lib/store/useGlobalStore";
+import UnauthorizedPage from "@/components/UnauthorizedPage";
+import { User } from "@/types/user.type";
+
+function TenantsPage() {
   const [refetch, setRefetch] = useState(false);
+  const [isReset, setIsReset] = useState(false);
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -27,7 +31,6 @@ export default function TenantsPage() {
     show: false,
     user: null,
   });
-  const [isReset, setIsReset] = useState(false);
   const [filters, setFilters] = useState<{
     role: string;
     status: string;
@@ -37,7 +40,7 @@ export default function TenantsPage() {
     status: [],
     role: [],
   });
-  const [userDetails, setUserDetails] = useState<IUser | null>(null);
+  const [userDetails, setUserDetails] = useState<User | null>(null);
 
   const columns = [
     { key: "index", label: "ID", sortable: true },
@@ -183,6 +186,7 @@ export default function TenantsPage() {
       }}
     />
   );
+
   return (
     <Box px={0} py={8}>
       <Flex gap={2} alignItems="center" mb={4}>
@@ -206,4 +210,11 @@ export default function TenantsPage() {
       />
     </Box>
   );
+}
+
+export default function Tenants() {
+  const { user } = useGlobalStore();
+  if (user?.role !== "landlord") return <UnauthorizedPage />;
+
+  return <TenantsPage />;
 }

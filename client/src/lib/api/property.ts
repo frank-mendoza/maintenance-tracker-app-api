@@ -10,7 +10,7 @@ export const fetchProperties = (queryObject: any) => {
 
   const searchParams = new URLSearchParams(filteredParams);
 
-  return apiRequest("get", `/property/all?${searchParams.toString()}`);
+  return apiRequest("get", `/property/properties?${searchParams.toString()}`);
 };
 
 export const propertyMutation = (body: {

@@ -12,6 +12,7 @@ export interface IUser extends Document {
   assignedRequests?: string[]; // maintenance IDs (for technicians)
   propertiesOwned?: string[]; // property IDs (for landlords)
   createdAt: Date;
+  images: { path: string; public_id: string }[];
   manuallyCreated?: boolean; // flag to indicate if the user was created manually
   isVerified: { type: Boolean; default: false };
 }
@@ -32,6 +33,12 @@ const userSchema = new Schema<IUser>(
     },
     assignedRequests: [{ type: Schema.Types.ObjectId, ref: "MaintenanceLog" }],
     propertiesOwned: [{ type: Schema.Types.ObjectId, ref: "Property" }],
+    images: [
+      {
+        path: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );

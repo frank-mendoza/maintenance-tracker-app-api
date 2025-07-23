@@ -16,13 +16,19 @@ import {
 } from "@chakra-ui/react";
 import { ReactNode, useEffect, useState } from "react";
 import { CiBoxList, CiGrid41 } from "react-icons/ci";
-import PropertyCard, { PropertyCardList } from "./components/PropertyCard";
+import PropertyCard from "./components/PropertyCard";
 import DataFilter from "@/components/DataFilter";
 import { fetchProperties } from "@/lib/api/property";
 import { toaster } from "@/components/ui/toaster";
 import { IProperty } from "@/types/property.types";
 import PropertyForm from "./components/PropertyForm";
 import { Tooltip } from "@/components/ui/tooltip";
+import DataTable from "@/components/DataTable";
+import { FaEye } from "react-icons/fa";
+import { BiTrash } from "react-icons/bi";
+import { useRouter } from "next/navigation";
+import UnauthorizedPage from "@/components/UnauthorizedPage";
+import useGlobalStore from "@/lib/store/useGlobalStore";
 
 export const GridItemsList = ({
   label,
@@ -56,7 +62,8 @@ export const items = [
   },
 ];
 
-export default function PropertiesPage() {
+function PropertyComponent() {
+  const router = useRouter();
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [properties, setProperties] = useState<IProperty[]>([]);
   const [gridType, setGridType] = useState<1 | 2>(() => {
@@ -64,6 +71,8 @@ export default function PropertiesPage() {
     const parsed = stored === "2" ? 2 : 1;
     return parsed;
   });
+  const [refetch, setRefetch] = useState(false);
+  const [isReset, setIsReset] = useState(false);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -81,15 +90,17 @@ export default function PropertiesPage() {
 
   // Debounce effect
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 500); // 500ms debounce
+    if (gridType === 1) {
+      const handler = setTimeout(() => {
+        setDebouncedSearch(search);
+      }, 500); // 500ms debounce
 
-    return () => clearTimeout(handler); // Cleanup on input change
-  }, [search]);
+      return () => clearTimeout(handler); // Cleanup on input change
+    }
+  }, [search, gridType]);
 
   useEffect(() => {
-    if (loading) {
+    if (loading && gridType === 1) {
       (async () => {
         setLoading(true);
         const query: any = {
@@ -106,12 +117,12 @@ export default function PropertiesPage() {
             type: "error",
           });
         } else {
-          setProperties(res?.properties || []);
+          setProperties(res?.data || []);
         }
         setLoading(false);
       })();
     }
-  }, [filters, debouncedSearch, loading]);
+  }, [filters, debouncedSearch, loading, gridType]);
 
   const apartmentTypes = createListCollection({
     items: [
@@ -140,48 +151,125 @@ export default function PropertiesPage() {
     ],
   });
 
-  const renderDataList = () => {
-    if (loading)
-      return (
-        <VStack py={5} mt={5}>
-          <Spinner
-            color="red.500"
-            css={{ "--spinner-track-color": "colors.gray.200" }}
-          />
-          <Text color="colorPalette.600">Loading...</Text>
-        </VStack>
-      );
+  const columns = [
+    { key: "index", label: "ID", sortable: true },
+    { key: "name", label: "Property Name", sortable: true },
+    { key: "rent", label: "Property Price" },
+    { key: "type", label: "Property Type" },
+    { key: "description", label: "Decription" },
+    { key: "units", label: "Number of Units" },
+    { key: "status", label: "Status" },
+    { key: "createdAt", label: "Date Created" },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (row: any) => (
+        <>
+          {/* <IconButton
+              variant="ghost"
+              aria-label="Edit"
+              onClick={() => console.log("Edit", row)}
+            >
+              <BiPencil />
+            </IconButton> */}
+          <IconButton
+            variant="ghost"
+            aria-label="View"
+            onClick={() => router.push(`/properties/${row._id}`)}
+          >
+            <FaEye />{" "}
+          </IconButton>
+          <IconButton
+            variant="ghost"
+            aria-label="Delete"
+            onClick={
+              () => {}
+              // setIsRemove({
+              //   show: true,
+              //   user: row,
+              // })
+            }
+          >
+            <BiTrash color="red" />
+          </IconButton>
+        </>
+      ),
+    },
+  ];
 
-    if (!properties || properties.length === 0) {
-      return <Center my={8}>No data available</Center>;
-    }
-    if (gridType === 1) {
-      return (
-        <SimpleGrid
-          mt={4}
-          transition={"all ease-in-out"}
-          columns={{ base: 1, md: 2, lg: 3, xl: 4 }}
-          gap={6}
-        >
-          {properties.map((property) => (
-            <PropertyCard key={property._id} data={property} />
-          ))}
-        </SimpleGrid>
-      );
+  const filterNumber = Object.values(filters).filter(
+    (val) => typeof val === "string" && val.trim() !== ""
+  ).length;
+
+  const filtersFields = (
+    <>
+      <SelectInput
+        vertical
+        mb
+        label={"Type"}
+        placeholder="Select apartment type"
+        items={apartmentTypes}
+        onChange={(e: any) =>
+          setFiltersTemp({
+            ...filtersTemp,
+            type: e.value,
+          })
+        }
+        value={filtersTemp.type}
+      />
+      <SelectInput
+        vertical
+        mb
+        label={"Sort"}
+        placeholder="Sort by"
+        items={sorts}
+        onChange={(e: any) =>
+          setFiltersTemp({
+            ...filtersTemp,
+            sort: e.value,
+          })
+        }
+        value={filtersTemp.sort}
+      />
+      <SelectInput
+        vertical
+        mb
+        label={"Status"}
+        placeholder="Select status"
+        items={status}
+        onChange={(e: any) =>
+          setFiltersTemp({
+            ...filtersTemp,
+            status: e.value,
+          })
+        }
+        value={filtersTemp.status}
+      />
+    </>
+  );
+
+  const onRefresh = () => {
+    if (filterNumber > 0) {
+      setFilters({ type: "", status: "", sort: "" });
+      setFiltersTemp({ type: [], status: [], sort: [] });
     }
 
-    return (
-      <SimpleGrid
-        mt={4}
-        transition={"all ease-in-out"}
-        columns={{ base: 1 }}
-        gap={6}
-      >
-        {properties.map((property) => (
-          <PropertyCardList key={property._id} data={property} />
-        ))}
-      </SimpleGrid>
-    );
+    if (search.length > 0) {
+      setSearch("");
+    }
+    setLoading(true);
+    setRefetch(true);
+  };
+
+  const onSubmitFilter = () => {
+    setFilters({
+      type: filtersTemp.type[0] || "",
+      status: filtersTemp.status[0] || "",
+      sort: filtersTemp.sort[0] || "",
+    });
+    setIsOpen(false);
+    setLoading(true);
+    setRefetch(true);
   };
 
   const actionButtons = (
@@ -213,77 +301,75 @@ export default function PropertiesPage() {
     </>
   );
 
-  const filterNumber = Object.values(filters).filter(
-    (val) => typeof val === "string" && val.trim() !== ""
-  ).length;
-
-  const filtersFields = (
-    <>
-      <SelectInput
-        center
-        mb
-        label={"Type"}
-        placeholder="Select apartment type"
-        items={apartmentTypes}
-        onChange={(e: any) =>
-          setFiltersTemp({
-            ...filtersTemp,
-            type: e.value,
-          })
-        }
-        value={filtersTemp.type}
-      />
-      <SelectInput
-        center
-        mb
-        label={"Sort"}
-        placeholder="Sort by"
-        items={sorts}
-        onChange={(e: any) =>
-          setFiltersTemp({
-            ...filtersTemp,
-            sort: e.value,
-          })
-        }
-        value={filtersTemp.sort}
-      />
-      <SelectInput
-        center
-        mb
-        label={"Status"}
-        placeholder="Select status"
-        items={status}
-        onChange={(e: any) =>
-          setFiltersTemp({
-            ...filtersTemp,
-            status: e.value,
-          })
-        }
-        value={filtersTemp.status}
-      />
-    </>
+  const dataFilter = (
+    <DataFilter
+      actions={
+        <PropertyForm
+          type="create"
+          setTrigger={setLoading}
+          isOpenDialog={isOpenDialog}
+          setIsOpenDialog={setIsOpenDialog}
+        />
+      }
+      onRefresh={onRefresh}
+      onOpenFilter={(e) => setIsOpen(e.open)}
+      onSearchChange={(e) => setSearch(e.target.value)}
+      actionButtons={actionButtons}
+      title={"Properties"}
+      search={search}
+      isOpen={isOpen}
+      filterNumber={filterNumber}
+      filters={filtersFields}
+      onCLoseFilter={() => setIsOpen(false)}
+      onSubmitFilter={onSubmitFilter}
+    />
   );
 
-  const onRefresh = () => {
-    if (filterNumber > 0) {
-      setFilters({ type: "", status: "", sort: "" });
-      setFiltersTemp({ type: [], status: [], sort: [] });
+  const renderDataList = () => {
+    if (gridType === 1) {
+      if (loading)
+        return (
+          <VStack py={5} mt={5}>
+            <Spinner
+              color="red.500"
+              css={{ "--spinner-track-color": "colors.gray.200" }}
+            />
+            <Text color="colorPalette.600">Loading...</Text>
+          </VStack>
+        );
+
+      if (!properties || properties.length === 0) {
+        return <Center my={8}>No data available</Center>;
+      }
+
+      return (
+        <>
+          <SimpleGrid
+            mt={4}
+            transition={"all ease-in-out"}
+            columns={{ base: 1, md: 2, lg: 3, xl: 4 }}
+            gap={6}
+          >
+            {properties.map((property) => (
+              <PropertyCard key={property._id} data={property} />
+            ))}
+          </SimpleGrid>
+        </>
+      );
     }
 
-    if (search.length > 0) {
-      setSearch("");
-    }
-    setLoading(true);
-  };
-
-  const onSubmitFilter = () => {
-    setFilters({
-      type: filtersTemp.type[0] || "",
-      status: filtersTemp.status[0] || "",
-      sort: filtersTemp.sort[0] || "",
-    });
-    setIsOpen(false);
-    setLoading(true);
+    return (
+      <DataTable
+        isReset={isReset}
+        setIsReset={setIsReset}
+        refetch={refetch}
+        setRefetch={setRefetch}
+        filters={{ ...filters, search }}
+        filterComponent={dataFilter}
+        columns={columns}
+        source={fetchProperties}
+      />
+    );
   };
 
   return (
@@ -292,29 +378,15 @@ export default function PropertiesPage() {
         <Heading size="lg">Properties</Heading>
       </Flex>
 
-      <DataFilter
-        actions={
-          <PropertyForm
-            type="create"
-            setTrigger={setLoading}
-            isOpenDialog={isOpenDialog}
-            setIsOpenDialog={setIsOpenDialog}
-          />
-        }
-        onRefresh={onRefresh}
-        onOpenFilter={(e) => setIsOpen(e.open)}
-        onSearchChange={(e) => setSearch(e.target.value)}
-        actionButtons={actionButtons}
-        title={"Properties"}
-        search={search}
-        isOpen={isOpen}
-        filterNumber={filterNumber}
-        filters={filtersFields}
-        onCLoseFilter={() => setIsOpen(false)}
-        onSubmitFilter={onSubmitFilter}
-      />
-
+      {gridType === 1 && dataFilter}
       {renderDataList()}
     </Box>
   );
+}
+
+export default function PropertiesPage() {
+  const { user } = useGlobalStore();
+  if (user?.role !== "landlord") return <UnauthorizedPage />;
+
+  return <PropertyComponent />;
 }

@@ -13,6 +13,7 @@ const SelectInput = ({
   mb,
   errors,
   id,
+  disabled,
 }: {
   items: ListCollection<any>;
   placeholder: string;
@@ -25,6 +26,7 @@ const SelectInput = ({
   mb?: boolean;
   errors?: any;
   id?: string;
+  disabled?: boolean;
 }) => {
   return (
     <>
@@ -33,15 +35,16 @@ const SelectInput = ({
         flexDirection={vertical ? "column" : "row"}
         alignItems={center ? "center" : "start"}
         size="sm"
+        gap={0}
         mb={mb ? 5 : 0}
         width={width || "auto"}
         value={value}
+        disabled={disabled || false}
         onValueChange={onChange}
       >
         <Select.HiddenSelect />
-        <Select.Label fontWeight={500} minW={100}>
-          {label}:
-        </Select.Label>
+        <Text mb={2}>{label}</Text>
+
         <Select.Control width={"100%"} minWidth={"auto"}>
           <Select.Trigger
             p={2}

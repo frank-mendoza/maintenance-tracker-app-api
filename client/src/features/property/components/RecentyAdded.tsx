@@ -22,7 +22,7 @@ const RecentyAdded = () => {
         type: "error",
       });
     } else {
-      setItems(res?.properties || []);
+      setItems(res?.data || []);
     }
   }, []);
 

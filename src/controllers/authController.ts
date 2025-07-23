@@ -96,7 +96,9 @@ export const login = async (
       sameSite: "strict",
     });
 
-    res.status(StatusCodes.OK).json({ msg: "Login successful", success: true });
+    res
+      .status(StatusCodes.OK)
+      .json({ msg: "Login successful", success: true, user });
   } catch (error) {
     console.error(error);
     next(error); // Pass error to the error-handling middleware

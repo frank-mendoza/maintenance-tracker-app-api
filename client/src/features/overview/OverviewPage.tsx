@@ -2,6 +2,8 @@
 "use client";
 
 import { useColorModeValue } from "@/components/ui/color-mode";
+import UnauthorizedPage from "@/components/UnauthorizedPage";
+import useGlobalStore from "@/lib/store/useGlobalStore";
 import {
   Box,
   Card,
@@ -17,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { FaUsers, FaBuilding, FaTools, FaClock } from "react-icons/fa";
 
-const OverviewPage = () => {
+const OverviewComponent = () => {
   const overviews = [
     {
       label: "Tenants",
@@ -156,4 +158,10 @@ const OverviewPage = () => {
     </Box>
   );
 };
-export default OverviewPage;
+
+export default function OverviewPage() {
+  const { user } = useGlobalStore();
+  if (user?.role !== "landlord") return <UnauthorizedPage />;
+
+  return <OverviewComponent />;
+}

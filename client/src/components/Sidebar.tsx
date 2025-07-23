@@ -1,6 +1,7 @@
 // components/Sidebar.tsx
 "use client";
 
+import useGlobalStore from "@/lib/store/useGlobalStore";
 import {
   Box,
   VStack,
@@ -22,29 +23,45 @@ import {
   FiTool,
   FiUser,
   FiSettings,
-  FiLogOut,
   FiMenu,
 } from "react-icons/fi";
 
 export default function Sidebar() {
+  const { user } = useGlobalStore();
   const pathname = usePathname();
 
   const { open, onOpen, onClose } = useDisclosure();
 
   const links = [
-    { href: "/overview", label: "Overview", icon: <FiHome /> },
-    { href: "/properties", label: "Properties", icon: <FiGrid /> },
-    { href: "/tenants", label: "Tenants", icon: <FiUsers /> },
-    { href: "/maintenance-logs", label: "Maintenance", icon: <FiTool /> },
+    {
+      href: "/overview",
+      label: "Overview",
+      icon: <FiHome />,
+      isAdmin: user?.role === "landlord",
+    },
+    {
+      href: "/properties",
+      label: "Properties",
+      icon: <FiGrid />,
+      isAdmin: user?.role === "landlord",
+    },
+    {
+      href: "/tenants",
+      label: "Tenants",
+      icon: <FiUsers />,
+      isAdmin: user?.role === "landlord",
+    },
+    { href: "/maintenance-logs", label: "Maintenance Logs", icon: <FiTool /> },
     { href: "/account", label: "Account", icon: <FiUser /> },
     { href: "/settings", label: "Settings", icon: <FiSettings /> },
-    { href: "/logout", label: "Logout", icon: <FiLogOut /> },
+    // { href: "/logout", label: "Logout", icon: <FiLogOut /> },
   ];
 
   const renderLinks = () => (
     <VStack align="start" gap={2}>
       {links.map((link) => {
         const isActive = pathname === link.href;
+        if (!link?.isAdmin && link.isAdmin !== undefined) return null;
         return (
           <Link
             key={link.href}
