@@ -1,4 +1,5 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
+import { IProperty } from "./Property";
 
 export type UserRole = "tenant" | "landlord" | "technician";
 
@@ -9,7 +10,10 @@ export interface IUser extends Document {
   password?: string; // store hashed password
   role: UserRole;
   phone: string;
-  assignedRequests?: string[]; // maintenance IDs (for technicians)
+  assignedRequests?: {
+    status: "pending" | "in_progress" | "completed";
+    property: mongoose.Types.ObjectId | IProperty;
+  }[]; // maintenance IDs (for technicians)
   propertiesOwned?: string[]; // property IDs (for landlords)
   createdAt: Date;
   images: { path: string; public_id: string }[];
@@ -31,7 +35,12 @@ const userSchema = new Schema<IUser>(
       enum: ["tenant", "landlord", "technician"],
       default: "landlord",
     },
-    assignedRequests: [{ type: Schema.Types.ObjectId, ref: "MaintenanceLog" }],
+    assignedRequests: [
+      {
+        status: { type: String, required: true, default: "pending" },
+        property: { type: Schema.Types.ObjectId, ref: "Property" },
+      },
+    ],
     propertiesOwned: [{ type: Schema.Types.ObjectId, ref: "Property" }],
     images: [
       {

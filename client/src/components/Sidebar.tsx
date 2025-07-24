@@ -46,8 +46,8 @@ export default function Sidebar() {
       isAdmin: user?.role === "landlord",
     },
     {
-      href: "/tenants",
-      label: "Tenants",
+      href: "/users",
+      label: "Users",
       icon: <FiUsers />,
       isAdmin: user?.role === "landlord",
     },

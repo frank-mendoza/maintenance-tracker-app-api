@@ -22,6 +22,7 @@ const errorHandlerMiddleware = (
     res.status(err.statusCode).json({ msg: err.message, error: true });
   } else {
     // Default handling for unexpected errors
+
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ msg: "Something went wrong, try again later", error: true });

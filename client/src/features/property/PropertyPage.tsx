@@ -29,6 +29,8 @@ import { BiTrash } from "react-icons/bi";
 import { useRouter } from "next/navigation";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import useGlobalStore from "@/lib/store/useGlobalStore";
+import PropertyStatusBadge from "./components/PropertyStatusbadge";
+import moment from "moment";
 
 export const GridItemsList = ({
   label,
@@ -158,8 +160,18 @@ function PropertyComponent() {
     { key: "type", label: "Property Type" },
     { key: "description", label: "Decription" },
     { key: "units", label: "Number of Units" },
-    { key: "status", label: "Status" },
-    { key: "createdAt", label: "Date Created" },
+    {
+      key: "status",
+      label: "Status",
+      render: (item: any) => <PropertyStatusBadge item={item} />,
+    },
+    {
+      key: "createdAt",
+      label: "Date Created",
+      render: (item: IProperty) => (
+        <>{moment(item.createdAt).format("MMM D YYYY")}</>
+      ),
+    },
     {
       key: "actions",
       label: "Actions",

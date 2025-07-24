@@ -36,9 +36,9 @@ const withValidationErrors: WithValidationErrors = (validatedValues) => {
         const errorMessages = errors
           .array()
           .map((error) => error.msg as string);
-        if (errorMessages[0].startsWith("no job")) {
-          throw new NotFoundError(errorMessages[0]);
-        }
+        // if (errorMessages[0].startsWith("no job")) {
+        //   throw new NotFoundError(errorMessages[0]);
+        // }
 
         if (errorMessages[0].startsWith("not authorized")) {
           throw new UnauthorizedError("not authorized to access this route");
@@ -125,6 +125,14 @@ export const validateProperty = withValidationErrors([
     const property = await Property.findById(value);
     if (!property) throw new NotFoundError(`no property with id : ${value}`);
   }),
+]);
+
+export const validateInputTickets = withValidationErrors([
+  body("propertyId").notEmpty().withMessage("Property id is required"),
+  body("title").notEmpty().withMessage("Title is required"),
+  body("description").notEmpty().withMessage("Log Description is required"),
+  body("assignedTo").isString().withMessage("Assignee must be a string"),
+  body("reportedBy").isString().withMessage("Reportedby must be a string"),
 ]);
 
 export const validateUser = withValidationErrors([

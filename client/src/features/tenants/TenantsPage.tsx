@@ -20,6 +20,8 @@ import RemovePopup from "./components/RemovePopup";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import { User } from "@/types/user.type";
+import UserStatusbadge from "./components/UserStatusbadge";
+import moment from "moment";
 
 function TenantsPage() {
   const [refetch, setRefetch] = useState(false);
@@ -48,8 +50,20 @@ function TenantsPage() {
     { key: "lastName", label: "Last Name" },
     { key: "role", label: "Role" },
     { key: "email", label: "Email" },
-    { key: "isVerified", label: "Verified User" },
-    { key: "createdAt", label: "Date Created" },
+    {
+      key: "isVerified",
+      label: "Verified User",
+      render: (item: User) => (
+        <UserStatusbadge isVerified={item.isVerified as boolean} />
+      ),
+    },
+    {
+      key: "createdAt",
+      label: "Date Created",
+      render: (item: User) => (
+        <>{moment(item.createdAt).format("MMM D YYYY")}</>
+      ),
+    },
     {
       key: "actions",
       label: "Actions",
@@ -110,7 +124,7 @@ function TenantsPage() {
   const filtersFields = (
     <>
       <SelectInput
-        center
+        vertical
         mb
         label={"Role"}
         placeholder="Select role type"
@@ -125,7 +139,7 @@ function TenantsPage() {
       />
 
       <SelectInput
-        center
+        vertical
         mb
         label={"Status"}
         placeholder="Select status"
@@ -190,7 +204,7 @@ function TenantsPage() {
   return (
     <Box px={0} py={8}>
       <Flex gap={2} alignItems="center" mb={4}>
-        <Heading size="lg">Tenants</Heading>
+        <Heading size="lg">Users</Heading>
       </Flex>
       <DataTable
         isReset={isReset}

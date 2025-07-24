@@ -45,7 +45,7 @@ export const userMutation = (body: {
 
   return apiRequest(
     body.isUpdate ? "patch" : "post",
-    `/user/${body.isUpdate ? body.id : ""}`,
+    `/user/${body.isUpdate ? body.id : "create"}`,
     formData
   );
 };

@@ -89,10 +89,10 @@ const Account = () => {
 
   useEffect(() => {
     clearErrors("role");
-    // let roleId: string;
-    // if (roles.length > 0) roleId = roles[0];
-    // else roleId = "";
-    // setValue("role", roleId);
+    let roleId: string;
+    if (roles.length > 0) roleId = roles[0];
+    else roleId = "";
+    setValue("role", roleId);
   }, [clearErrors, roles, setValue]);
 
   const onSubmit = async (data: any) => {

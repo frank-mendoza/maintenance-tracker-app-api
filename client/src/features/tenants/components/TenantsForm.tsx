@@ -11,6 +11,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { BiPlus } from "react-icons/bi";
+import UserStatusbadge from "./UserStatusbadge";
 
 // type TenantsFormData = {
 //   name: string;
@@ -139,23 +140,36 @@ const TenantsForm = ({
     },
   ];
 
-  const statusInput = {
-    label: "Status",
-    placeholder: "",
-    id: "status",
-    type: "radio",
-    value: details?.isVerified ? "1" : "2",
-    items: [
-      { label: "Verified", value: "1" },
-      { label: "Unverified", value: "2" },
-    ],
-    disabled: true,
-  };
+  // const statusInput = {
+  //   label: "Status",
+  //   placeholder: "",
+  //   id: "status",
+  //   type: "radio",
+  //   value: details?.isVerified ? "1" : "2",
+  //   items: [
+  //     { label: "Verified", value: "1" },
+  //     { label: "Unverified", value: "2" },
+  //   ],
+  //   disabled: true,
+  // };
 
   const formProps = {
     errors,
     register,
     clearErrors,
+  };
+
+  const renderFormTitle = () => {
+    let title: any = "Add User";
+    if (type === "update")
+      title = (
+        <>
+          Update {details?.name + " " + details?.lastName}
+          {"    "}
+          <UserStatusbadge isVerified={details?.isVerified as boolean} />
+        </>
+      );
+    return title;
   };
 
   const form = (
@@ -178,7 +192,7 @@ const TenantsForm = ({
             onChange={(e: any) => setRoles(e.value)}
           />
         </Box>
-        {type === "update" && <Inputs {...statusInput} {...formProps} />}
+        {/* {type === "update" && <Inputs {...statusInput} {...formProps} />} */}
       </VStack>
     </>
   );
@@ -186,7 +200,7 @@ const TenantsForm = ({
   return (
     <>
       <Button p={4} onClick={() => setIsOpenDialog(true)}>
-        <BiPlus /> Add tenant
+        <BiPlus /> Add user
       </Button>
       <DialogPopup
         size={"sm"}
@@ -195,11 +209,7 @@ const TenantsForm = ({
         open={isOpenDialog}
         loading={loading}
         content={form}
-        title={
-          type === "create"
-            ? "Add tenant"
-            : `Update ${details?.name + " " + details?.lastName}`
-        }
+        title={renderFormTitle()}
         onClose={() => {
           setIsOpenDialog(false);
           reset();

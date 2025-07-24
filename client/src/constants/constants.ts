@@ -18,3 +18,29 @@ export const ROLES = [
   { label: "Landlord", value: "landlord" },
   { label: "Technician", value: "technician" },
 ];
+
+export const PROPERTY_STATUS = {
+  pending: {
+    label: "Pending",
+    color: "orange",
+  },
+  in_progress: {
+    label: "In Progress",
+    color: "yellow",
+  },
+  completed: {
+    label: "Completed",
+    color: "green",
+  },
+} as const;
+
+export const USER_STATUS = {
+  Yes: {
+    label: "Verified",
+    color: "green",
+  },
+  No: {
+    label: "Unverified",
+    color: "red",
+  },
+} as const;

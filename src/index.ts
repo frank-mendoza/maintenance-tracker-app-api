@@ -11,16 +11,25 @@ import path from "path";
 import morgan from "morgan";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware";
 
+import rateLimiter from "express-rate-limit";
+
 import { v2 as cloudinary } from "cloudinary";
 
 import authRouter from "./routes/authRouter";
 import userRouter from "./routes/userRouter";
 import propertyRouter from "./routes/propertyRouter";
+import maintenanceRouter from "./routes/maintenanceRouter";
 import { authenticateUser } from "./middleware/authMiddleware";
 
 dotenv.config();
 
 const app = express();
+
+const apiLimiter = rateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15,
+  message: { msg: "IP rate limit exceeded, retry in 15 minutes." },
+});
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -63,9 +72,10 @@ if (process.env.NODE_ENV === "development") {
 //   res.send("✅ Backend running with Node.js 20 and Express 4.19");
 // });
 
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/property", authenticateUser, propertyRouter);
-app.use("/api/v1/user", authenticateUser, userRouter);
+app.use("/api/v1/auth", apiLimiter, authRouter);
+app.use("/api/v1/property", apiLimiter, authenticateUser, propertyRouter);
+app.use("/api/v1/user", apiLimiter, authenticateUser, userRouter);
+app.use("/api/v1/maintenance", apiLimiter, authenticateUser, maintenanceRouter);
 
 app.use((req, res) => {
   res.status(404).json({ msg: "Not found", error: true });

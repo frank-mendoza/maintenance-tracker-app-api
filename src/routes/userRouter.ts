@@ -1,5 +1,4 @@
 import { Router } from "express";
-import rateLimiter from "express-rate-limit";
 import { getCurrentUser } from "../controllers/userController";
 import {
   createUser,
@@ -23,17 +22,11 @@ const registerFields = {
 
 const router = Router();
 
-const apiLimiter = rateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15,
-  message: { msg: "IP rate limit exceeded, retry in 15 minutes." },
-});
-
 router.get("/", getCurrentUser);
 router.get("/all-users", getAllUsers);
 router.post(
   "/create",
-  apiLimiter,
+  upload.single("images"),
   ...validateInputFields(registerFields),
   createUser
 );

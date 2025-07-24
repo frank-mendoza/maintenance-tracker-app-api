@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { Pagination } from "@chakra-ui/react";
-import { ReactNode, useEffect, useState, useCallback } from "react";
+import { ReactNode, useEffect, useState, useCallback, JSX } from "react";
 import { toaster } from "./ui/toaster";
 import SelectInput from "./Select";
 import { User } from "@/types/user.type";
@@ -21,7 +21,7 @@ import { User } from "@/types/user.type";
 type Column = {
   key: string;
   label: string;
-  render?: (row: User) => React.ReactNode;
+  render?: (row: User) => React.ReactNode | JSX.Element;
   sortable?: boolean; // Indicates if the column is sortable
 };
 
@@ -54,7 +54,7 @@ const DataTable = ({
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState<boolean>(refetch || true);
   const [numOfPages, setNumOfPages] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(["10"]);
   const [totalItems, setTotalItems] = useState(0);
 
@@ -108,7 +108,7 @@ const DataTable = ({
         } else {
           setData(res.data);
           setTotalItems(res.total || 0);
-          setTotalPages(res.numOfPages);
+          // setTotalPages(res.numOfPages);
         }
         setLoading(false);
         setRefetch(false);
@@ -188,8 +188,6 @@ const DataTable = ({
       { label: "30", value: "30" },
     ],
   });
-
-  console.log(totalPages);
 
   return (
     <Stack width="full" gap="5">

@@ -1,20 +1,24 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 
 export interface IMaintenanceLog extends Document {
-  propertyId: string;
-  propertyName: string;
+  propertyId: mongoose.Types.ObjectId | string;
+
   title: string;
   description: string;
   status: "pending" | "in_progress" | "completed";
-  reportedBy: string;
+  reportedBy: mongoose.Types.ObjectId | string;
+  assignedTo: mongoose.Types.ObjectId | string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const maintenanceLogSchema = new Schema<IMaintenanceLog>(
   {
-    propertyId: { type: String, required: true },
-    propertyName: { type: String, required: true },
+    propertyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Property",
+      default: "",
+    },
     title: { type: String, required: true },
     description: { type: String, required: true },
     status: {
@@ -22,7 +26,16 @@ const maintenanceLogSchema = new Schema<IMaintenanceLog>(
       enum: ["pending", "in_progress", "completed"],
       default: "pending",
     },
-    reportedBy: { type: String, required: true },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: "",
+    },
+    reportedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: "",
+    },
   },
   { timestamps: true }
 );
