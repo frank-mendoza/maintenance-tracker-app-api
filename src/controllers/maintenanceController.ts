@@ -77,7 +77,7 @@ export const createMaintenanceTicket = async (req: Request, res: Response) => {
 
 export const getMaintenanceLogs = async (req: Request, res: Response) => {
   try {
-    const { search, type, status, sort } = req.query;
+    const { search, type, status, sort, assignedTo, reportedBy } = req.query;
 
     // custom sort map for properties
     const sortOptions = {
@@ -96,11 +96,13 @@ export const getMaintenanceLogs = async (req: Request, res: Response) => {
       filters: {
         type,
         status,
+        assignedTo,
+        reportedBy,
       },
     });
 
     const { sortKey, skip } = getPaginationAndSort({
-      sort: sort as string,
+      sort: sort ? (sort as string) : sortOptions.newest,
       page,
       limit,
       sortOptions,
@@ -135,5 +137,69 @@ export const getMaintenanceLogs = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     throw new BadRequestError("Failed to fetch maintenance logs");
+  }
+};
+
+export const getMaintenanceLogInfo = async (req: Request, res: Response) => {
+  const maintenanceLog = await MaintenanceLog.findById(req.params.id);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    maintenanceLog,
+  });
+};
+
+export const updateMaintenanceLog = async (req: Request, res: Response) => {
+  try {
+    const ticket = await MaintenanceLog.findById(req.params.id);
+    if (!ticket) throw new NotFoundError("Ticket not found");
+
+    const updatedTicket = await MaintenanceLog.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+      },
+      { new: true }
+    );
+
+    res
+      .status(StatusCodes.OK)
+      .json({ maintenanceLog: updatedTicket, success: true });
+  } catch (error) {
+    console.error("Failed to update ticket:", error);
+    throw new BadRequestError("Failed to update ticket");
+  }
+};
+
+export const updateMaintenanceLogStatus = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const ticket = await MaintenanceLog.findById(req.params.id);
+    if (!ticket) throw new NotFoundError("Ticket not found");
+
+    if (req.body.userId !== ticket.assignedTo.toString()) {
+      res.status(StatusCodes.UNAUTHORIZED).json({
+        msg: "Invalid assignee id",
+        error: true,
+      });
+      return;
+    }
+
+    const updatedTicket = await MaintenanceLog.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: req.body.status,
+      },
+      { new: true }
+    );
+
+    res
+      .status(StatusCodes.OK)
+      .json({ maintenanceLog: updatedTicket, success: true });
+  } catch (error) {
+    console.error("Failed to update ticket status:", error);
+    throw new BadRequestError("Failed to update ticket status");
   }
 };

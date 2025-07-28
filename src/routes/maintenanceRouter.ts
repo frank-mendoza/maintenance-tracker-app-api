@@ -1,14 +1,35 @@
 import { Router } from "express";
 import {
   createMaintenanceTicket,
+  getMaintenanceLogInfo,
   getMaintenanceLogs,
+  updateMaintenanceLog,
+  updateMaintenanceLogStatus,
 } from "../controllers/maintenanceController";
-import { validateInputTickets } from "../middleware/formValidationMiddleware";
+import {
+  validateInputTickets,
+  validateTicket,
+  validateUpdateTickets,
+} from "../middleware/formValidationMiddleware";
 
 const router = Router();
 
 router.post("/", ...validateInputTickets, createMaintenanceTicket);
 
 router.get("/logs", getMaintenanceLogs);
+
+router
+  .route("/:id")
+  .get(...validateTicket, getMaintenanceLogInfo)
+  .patch(...validateTicket, ...validateInputTickets, updateMaintenanceLog);
+// .delete(...validateProperty, deleteProperty);
+
+router
+  .route("/:id/update-status")
+  .patch(
+    ...validateTicket,
+    ...validateUpdateTickets,
+    updateMaintenanceLogStatus
+  );
 
 export default router;

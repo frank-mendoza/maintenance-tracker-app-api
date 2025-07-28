@@ -153,7 +153,7 @@ function PropertyComponent() {
     ],
   });
 
-  const columns = [
+  const columns: any[] = [
     { key: "index", label: "ID", sortable: true },
     { key: "name", label: "Property Name", sortable: true },
     { key: "rent", label: "Property Price" },

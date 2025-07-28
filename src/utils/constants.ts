@@ -11,3 +11,10 @@ export const USER_TYPES = {
   LANDLORD: "landlord",
   TECHINICIAN: "technician",
 };
+
+export const TIKET_STATUS = {
+  PENDING: "pending",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  DISCARDED: "discarded",
+};

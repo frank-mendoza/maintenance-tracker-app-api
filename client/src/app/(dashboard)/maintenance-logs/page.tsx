@@ -1,6 +1,6 @@
-import MaintenanceLogs from "@/features/maintenance-logs/MaintenanceLogs";
+import Maintenance from "@/features/maintenance-logs/MaintenanceLogs";
 
-const Maintenance = () => {
-  return <MaintenanceLogs />;
+const MaintenancePage = () => {
+  return <Maintenance />;
 };
-export default Maintenance;
+export default MaintenancePage;

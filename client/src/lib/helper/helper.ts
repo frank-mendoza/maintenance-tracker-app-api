@@ -25,3 +25,7 @@ export const urlToFile = async (url: UrlToFileParams["url"]): Promise<File> => {
   const blob: Blob = await res.blob();
   return new File([blob], fileName, { type: mimeType });
 };
+
+export function getValueByPath(obj: any, path: string): any {
+  return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? null;
+}

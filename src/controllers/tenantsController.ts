@@ -41,7 +41,7 @@ export const getAllUsers = async (req: any, res: any) => {
     });
 
     const { sortKey, skip } = getPaginationAndSort({
-      sort: sort as string,
+      sort: sort ? (sort as string) : sortOptions.newest,
       page,
       limit,
       sortOptions,

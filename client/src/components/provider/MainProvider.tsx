@@ -6,11 +6,13 @@ import { ReactNode, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { ColorModeProvider } from "../ui/color-mode";
+import { fetchUser } from "@/lib/api/user";
+import { Loading } from "../Loading";
 
 export function MainProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useGlobalStore();
+  const { user, setUser, clearUser } = useGlobalStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +26,22 @@ export function MainProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, [user, pathname, router]);
 
-  if (loading) return <></>;
+  useEffect(() => {
+    (async () => {
+      const user: any = await fetchUser();
+
+      if (user.error) {
+        router.push("/login");
+        clearUser();
+      } else {
+        setUser(user.user);
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) return <Loading />;
+
   return (
     <ChakraProvider value={defaultSystem}>
       <Toaster />

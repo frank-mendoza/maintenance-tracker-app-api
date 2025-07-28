@@ -4,6 +4,7 @@
 
 import Inputs from "@/components/inputs/Inputs";
 import { toaster } from "@/components/ui/toaster";
+import { ROLES_TYPES } from "@/constants/constants";
 import { loginUser } from "@/lib/api/auth";
 import { userLoginSchema } from "@/lib/formValidator";
 import useGlobalStore from "@/lib/store/useGlobalStore";
@@ -47,7 +48,11 @@ export default function LoginPage() {
 
       setUser(res.user);
 
-      if (res.user?.role === "tenant") router.push("/maintenance-logs");
+      if (
+        res.user?.role === ROLES_TYPES.TENANT ||
+        res.user?.role === ROLES_TYPES.TECH
+      )
+        router.push("/maintenance-logs");
       else router.push("/overview");
     }
 

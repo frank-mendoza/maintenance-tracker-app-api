@@ -27,7 +27,7 @@ const app = express();
 
 const apiLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15,
+  max: 100,
   message: { msg: "IP rate limit exceeded, retry in 15 minutes." },
 });
 

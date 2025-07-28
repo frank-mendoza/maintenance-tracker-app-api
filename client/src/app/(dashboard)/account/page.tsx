@@ -273,7 +273,7 @@ const Account = () => {
             ))}
           </SimpleGrid>
 
-          <Flex justifyContent={"flex-end"} gap={"2"}>
+          <Flex justifyContent={"flex-end"} gap={"2"} mt={5}>
             <Button
               size={"sm"}
               colorPalette={"red"}

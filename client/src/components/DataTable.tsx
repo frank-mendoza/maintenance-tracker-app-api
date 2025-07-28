@@ -17,6 +17,7 @@ import { ReactNode, useEffect, useState, useCallback, JSX } from "react";
 import { toaster } from "./ui/toaster";
 import SelectInput from "./Select";
 import { User } from "@/types/user.type";
+import { getValueByPath } from "@/lib/helper/helper";
 
 type Column = {
   key: string;
@@ -50,9 +51,11 @@ const DataTable = ({
 }: DataTableProps) => {
   const [data, setData] = useState<User[]>([]);
   const [sortBy, setSortBy] = useState<string>(""); // e.g. "tenantName"
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>("asc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "latest">(
+    "latest"
+  );
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [loading, setLoading] = useState<boolean>(refetch || true);
+  const [loading, setLoading] = useState<boolean>(refetch);
   const [numOfPages, setNumOfPages] = useState(1);
   // const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(["10"]);
@@ -71,13 +74,14 @@ const DataTable = ({
   const renderSort = useCallback(() => {
     if (isReset) return null;
     if (sortOrder === "asc") return "a-z";
-    return "z-a";
+    if (sortOrder === "desc") return "z-a";
+    return "newest";
   }, [isReset, sortOrder]);
 
   useEffect(() => {
     if (isReset) {
-      setSortOrder(null);
-      setSortBy("");
+      setSortOrder("latest");
+      setSortBy("latest");
     }
   }, [isReset]);
 
@@ -165,10 +169,13 @@ const DataTable = ({
       return (
         <Table.Row key={idx}>
           {columns.map((col) => {
+            const valueRender =
+              (row as any)[col.key] || getValueByPath(row, col.key);
+
             const renderedValue =
               typeof (row as any)[col.key] === "boolean"
                 ? generateBooleanCell((row as any)[col.key])
-                : (row as any)[col.key];
+                : valueRender;
             return (
               <Table.Cell key={col.key} p={4}>
                 {col.render ? col.render(row) : renderedValue}

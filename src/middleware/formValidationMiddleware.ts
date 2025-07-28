@@ -7,9 +7,10 @@ import {
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { ValidationChain } from "express-validator";
 import User from "../models/User";
-import { APRTMENT_TYPE, USER_TYPES } from "../utils/constants";
+import { APRTMENT_TYPE, TIKET_STATUS, USER_TYPES } from "../utils/constants";
 import Property from "../models/Property";
 import mongoose from "mongoose";
+import MaintenanceLog from "../models/MaintenanceLog";
 
 interface WithValidationErrors {
   (validatedValues: any[]): [ValidationChain[], RequestHandler];
@@ -127,12 +128,36 @@ export const validateProperty = withValidationErrors([
   }),
 ]);
 
+export const validateTicket = withValidationErrors([
+  param("id").custom(async (value, { req }) => {
+    const isValidId = mongoose.Types.ObjectId.isValid(value);
+
+    if (!isValidId) throw new BadRequestError("Invalid MongoDB id");
+
+    const ticket = await MaintenanceLog.findById(value);
+    if (!ticket) throw new NotFoundError(`no ticket with id : ${value}`);
+  }),
+]);
+
+export const validateUpdateTickets = withValidationErrors([
+  body("userId").notEmpty().withMessage("User ID is required"),
+  body("status")
+    .isIn(Object.values(TIKET_STATUS))
+    .withMessage("invalid ticket status type"),
+]);
+
 export const validateInputTickets = withValidationErrors([
   body("propertyId").notEmpty().withMessage("Property id is required"),
   body("title").notEmpty().withMessage("Title is required"),
   body("description").notEmpty().withMessage("Log Description is required"),
-  body("assignedTo").isString().withMessage("Assignee must be a string"),
-  body("reportedBy").isString().withMessage("Reportedby must be a string"),
+  body("assignedTo")
+    .notEmpty()
+    .isString()
+    .withMessage("Assignee must be a string"),
+  body("reportedBy")
+    .notEmpty()
+    .isString()
+    .withMessage("Reportedby must be a string"),
 ]);
 
 export const validateUser = withValidationErrors([

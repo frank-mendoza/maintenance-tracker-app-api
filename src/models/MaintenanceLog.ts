@@ -5,7 +5,7 @@ export interface IMaintenanceLog extends Document {
 
   title: string;
   description: string;
-  status: "pending" | "in_progress" | "completed";
+  status: "pending" | "in_progress" | "completed" | "discarded";
   reportedBy: mongoose.Types.ObjectId | string;
   assignedTo: mongoose.Types.ObjectId | string;
   createdAt: Date;
@@ -23,7 +23,7 @@ const maintenanceLogSchema = new Schema<IMaintenanceLog>(
     description: { type: String, required: true },
     status: {
       type: String,
-      enum: ["pending", "in_progress", "completed"],
+      enum: ["pending", "in_progress", "completed", "discarded"],
       default: "pending",
     },
     assignedTo: {
