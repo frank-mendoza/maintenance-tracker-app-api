@@ -160,6 +160,19 @@ function MaintenanceLogs() {
     </>
   );
 
+  const onRefresh = () => {
+    if (filterNumber > 0) {
+      setFilters({ role: "", status: "", sort: null });
+      setFiltersTemp({ role: [], status: [] });
+    }
+
+    if (search.length > 0) {
+      setSearch("");
+    }
+    setIsReset(true);
+    setRefetch(true);
+  };
+
   const filterComponent = (
     <DataFilter
       actions={
@@ -174,18 +187,7 @@ function MaintenanceLogs() {
       }
       onOpenFilter={(e) => setIsOpen(e.open)}
       onSearchChange={(e) => setSearch(e.target.value)}
-      onRefresh={() => {
-        if (filterNumber > 0) {
-          setFilters({ role: "", status: "", sort: null });
-          setFiltersTemp({ role: [], status: [] });
-        }
-
-        if (search.length > 0) {
-          setSearch("");
-        }
-        setIsReset(true);
-        setRefetch(true);
-      }}
+      onRefresh={onRefresh}
       title={"Maintenance Logs"}
       search={search}
       isOpen={isOpen}

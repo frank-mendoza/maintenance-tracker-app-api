@@ -42,6 +42,8 @@ const TicketsForm = ({
 }) => {
   const { user } = useGlobalStore();
   const params = useParams();
+
+  const isTenant = user?.role === ROLES_TYPES.TENANT;
   const isTechnician = user?.role === ROLES_TYPES.TECH;
   const isPending =
     details?.status === "pending" && user?.role === ROLES_TYPES.TENANT;
@@ -103,6 +105,8 @@ const TicketsForm = ({
     setLoading(true);
     const res: any = await maintenanceMutation({
       ...data,
+      propertyId: property[0],
+      assignedTo: assignee[0],
       reportedBy: user?._id as string,
       isUpdate: type === "update",
       id: details?._id,
@@ -141,6 +145,8 @@ const TicketsForm = ({
     })),
   });
 
+  const disabled = (isTechnician || !isPending) && type === "update";
+
   const form = (
     <>
       <VStack gap={4} alignItems={"start"}>
@@ -150,7 +156,7 @@ const TicketsForm = ({
           id="title"
           errors={errors}
           register={register}
-          disabled={isTechnician || !isPending}
+          disabled={disabled}
         />
         <Inputs
           type={"textarea"}
@@ -159,7 +165,7 @@ const TicketsForm = ({
           id="description"
           errors={errors}
           register={register}
-          disabled={isTechnician || !isPending}
+          disabled={disabled}
         />
 
         <SelectInput
@@ -170,7 +176,7 @@ const TicketsForm = ({
           label={"Assignee"}
           errors={errors}
           value={assignee}
-          disabled={isTechnician || !isPending}
+          disabled={disabled}
           onChange={(e: any) => setAssignee(e.value)}
         />
         <SelectInput
@@ -181,7 +187,7 @@ const TicketsForm = ({
           label={"Property"}
           errors={errors}
           value={property}
-          disabled={isTechnician || !isPending}
+          disabled={disabled}
           onChange={(e: any) => setProperty(e.value)}
         />
       </VStack>
@@ -203,9 +209,11 @@ const TicketsForm = ({
 
   return (
     <>
-      <Button p={4} onClick={() => setIsOpenDialog(true)}>
-        <BiPlus /> Report issue
-      </Button>
+      {isTenant && (
+        <Button p={4} onClick={() => setIsOpenDialog(true)}>
+          <BiPlus /> Report issue
+        </Button>
+      )}
       <DialogPopup
         size={"md"}
         onSubmit={handleSubmit((data) => onSubmit(data))}

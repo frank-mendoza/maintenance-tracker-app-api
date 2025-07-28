@@ -14,7 +14,7 @@ import {
 
 const router = Router();
 
-router.post("/", ...validateInputTickets, createMaintenanceTicket);
+router.post("/create", ...validateInputTickets, createMaintenanceTicket);
 
 router.get("/logs", getMaintenanceLogs);
 
@@ -22,7 +22,6 @@ router
   .route("/:id")
   .get(...validateTicket, getMaintenanceLogInfo)
   .patch(...validateTicket, ...validateInputTickets, updateMaintenanceLog);
-// .delete(...validateProperty, deleteProperty);
 
 router
   .route("/:id/update-status")
