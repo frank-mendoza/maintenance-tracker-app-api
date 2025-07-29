@@ -74,7 +74,6 @@ const SelectInput = ({
       </Select.Root>
       {errors && errors[id as string] && (
         <Text
-          mt={1}
           fontSize={12}
           color={"red.500"}
         >{`${errors[id as string]?.message}`}</Text>

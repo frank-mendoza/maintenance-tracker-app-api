@@ -39,9 +39,11 @@ export const updateTicketStatus = (body: {
   id: string;
   status: string;
   userId: string;
+  comments?: string; // Optional for discarded status
 }) => {
   return apiRequest("patch", `/maintenance/${body.id}/update-status`, {
     status: body.status,
     userId: body.userId,
+    comments: body.comments,
   });
 };

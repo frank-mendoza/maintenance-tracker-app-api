@@ -47,7 +47,6 @@ export default function LoginPage() {
       });
 
       setUser(res.user);
-
       if (
         res.user?.role === ROLES_TYPES.TENANT ||
         res.user?.role === ROLES_TYPES.TECH

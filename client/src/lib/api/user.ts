@@ -20,7 +20,7 @@ export const fetchUsers = (queryObject: any) => {
 export const userMutation = (body: {
   name: string;
   lastName: string;
-  phone: string;
+  phone?: string;
   email: string;
   role: string;
   isUpdate?: boolean;
@@ -29,10 +29,13 @@ export const userMutation = (body: {
 }) => {
   const formData = new FormData();
 
+  console.log("userMutation body", body);
   // Append regular fields
   formData.append("name", body.name);
   formData.append("lastName", body.lastName);
-  formData.append("phone", String(body.phone));
+  if (body.phone !== undefined) {
+    formData.append("phone", String(body.phone));
+  }
   formData.append("email", body.email);
   formData.append("role", String(body.role));
 

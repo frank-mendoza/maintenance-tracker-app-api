@@ -35,22 +35,26 @@ export const PROPERTY_STATUS = {
   pending: {
     label: "Pending",
     value: "pending",
+    buttonLabel: "Pending",
     color: "orange",
   },
   in_progress: {
     label: "In Progress",
     value: "in_progress",
-    color: "yellow",
+    buttonLabel: "Start",
+    color: "blue",
   },
   completed: {
     label: "Completed",
     value: "completed",
+    buttonLabel: "Complete",
     color: "green",
   },
   discarded: {
     label: "Discarded",
     value: "discarded",
-    color: "grey",
+    buttonLabel: "Discard",
+    color: "red",
   },
 } as const;
 

@@ -24,10 +24,17 @@ import { MaintenanceLog } from "@/types/maintenance.types";
 import { fetchTicketLogs } from "@/lib/api/maintenance";
 import TicketsForm from "./components/TicketsForm";
 import RemovePopup from "../tenants/components/RemovePopup";
-import { ROLES_TYPES, TicketStatus } from "@/constants/constants";
+import {
+  PROPERTY_STATUS,
+  ROLES_TYPES,
+  TicketStatus,
+} from "@/constants/constants";
+import UpdateTicketStatus from "./components/UpdateTicketStatus";
 
 function MaintenanceLogs() {
   const { user } = useGlobalStore();
+
+  const isTechnician = user?.role === ROLES_TYPES.TECH;
   const [refetch, setRefetch] = useState(false);
   const [isReset, setIsReset] = useState(false);
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -52,6 +59,14 @@ function MaintenanceLogs() {
     role: [],
   });
   const [details, setDetails] = useState<MaintenanceLog | null>(null);
+  const [updateTicket, setUpdateTicket] = useState<{
+    show: boolean;
+    ticket: MaintenanceLog | null;
+    isDiscarded?: boolean;
+  }>({
+    show: false,
+    ticket: null,
+  });
 
   const columns: any[] = [
     { key: "index", label: "ID", sortable: true },
@@ -110,24 +125,36 @@ function MaintenanceLogs() {
             variant="ghost"
             aria-label="View"
             onClick={() => {
-              setDetails(row);
-              setIsOpenDialog(true);
+              if (isTechnician) {
+                setUpdateTicket({
+                  show: true,
+                  ticket: row,
+                });
+              } else {
+                setDetails(row);
+                setIsOpenDialog(true);
+              }
             }}
           >
             <FaEye />{" "}
           </IconButton>
-          <IconButton
-            variant="ghost"
-            aria-label="Delete"
-            onClick={() =>
-              setIsRemove({
-                show: true,
-                user: row,
-              })
-            }
-          >
-            <BiTrash color="red" />
-          </IconButton>
+          {(row.status === PROPERTY_STATUS.in_progress.value ||
+            row.status === PROPERTY_STATUS.pending.value) &&
+            user?.role === ROLES_TYPES.TECH && (
+              <IconButton
+                variant="ghost"
+                aria-label="Delete"
+                onClick={() =>
+                  setUpdateTicket({
+                    show: true,
+                    ticket: row,
+                    isDiscarded: true,
+                  })
+                }
+              >
+                <BiTrash color="red" />
+              </IconButton>
+            )}
         </>
       ),
     },
@@ -142,22 +169,20 @@ function MaintenanceLogs() {
   ).length;
 
   const filtersFields = (
-    <>
-      <SelectInput
-        vertical
-        mb
-        label={"Status"}
-        placeholder="Select status"
-        items={status}
-        onChange={(e: any) =>
-          setFiltersTemp({
-            ...filtersTemp,
-            status: e.value,
-          })
-        }
-        value={filtersTemp.status}
-      />
-    </>
+    <SelectInput
+      vertical
+      mb
+      label={"Status"}
+      placeholder="Select status"
+      items={status}
+      onChange={(e: any) =>
+        setFiltersTemp({
+          ...filtersTemp,
+          status: e.value,
+        })
+      }
+      value={filtersTemp.status}
+    />
   );
 
   const onRefresh = () => {
@@ -185,17 +210,14 @@ function MaintenanceLogs() {
           setDetails={setDetails}
         />
       }
-      onOpenFilter={(e) => setIsOpen(e.open)}
+      setIsOpen={setIsOpen}
       onSearchChange={(e) => setSearch(e.target.value)}
       onRefresh={onRefresh}
       title={"Maintenance Logs"}
       search={search}
       isOpen={isOpen}
-      filterNumber={filterNumber}
-      filters={filtersFields}
-      onCLoseFilter={() => {
-        setIsOpen(false);
-      }}
+      filters={filters}
+      filtersFields={filtersFields}
       onSubmitFilter={() => {
         setFilters({
           ...filters,
@@ -233,6 +255,12 @@ function MaintenanceLogs() {
         setIsRemove={setIsRemove}
         isRemove={isRemove}
         loading={refetch}
+      />
+      <UpdateTicketStatus
+        setUpdateTicket={setUpdateTicket}
+        updateTicket={updateTicket}
+        loading={refetch}
+        setLoading={setRefetch}
       />
     </Box>
   );

@@ -97,6 +97,10 @@ const Account = () => {
 
   const onSubmit = async (data: any) => {
     setLoading(true);
+    if (data.phone === "" || data.phone === null) {
+      delete data.phone; // Remove phone if it's empty or null
+    }
+
     const res: any = await userMutation({
       ...data,
       isUpdate: true,

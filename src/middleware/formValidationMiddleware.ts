@@ -80,8 +80,7 @@ export const validateInputFields = (fields: FieldOptions) =>
 
       fields.lastName &&
         body("lastName").notEmpty().withMessage("Last name is required"),
-      fields.phone &&
-        body("phone").notEmpty().withMessage("Phone is required").isNumeric(),
+      fields.phone && body("phone").isNumeric().optional(),
       fields.role &&
         body("role")
           .notEmpty()

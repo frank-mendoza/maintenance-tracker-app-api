@@ -8,12 +8,13 @@ import PropertyStatusBadge from "@/features/property/components/PropertyStatusba
 import { maintenanceMutation } from "@/lib/api/maintenance";
 import { fetchProperties } from "@/lib/api/property";
 import { fetchUsers } from "@/lib/api/user";
+import { ticketSchema } from "@/lib/formValidator";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { MaintenanceLog } from "@/types/maintenance.types";
 import { IProperty } from "@/types/property.types";
 import { User } from "@/types/user.type";
 import { Button, createListCollection, VStack } from "@chakra-ui/react";
-import { useParams } from "next/navigation";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { BiPlus } from "react-icons/bi";
@@ -41,10 +42,8 @@ const TicketsForm = ({
   details?: MaintenanceLog | null; // Optional for create, required for update
 }) => {
   const { user } = useGlobalStore();
-  const params = useParams();
 
   const isTenant = user?.role === ROLES_TYPES.TENANT;
-  const isTechnician = user?.role === ROLES_TYPES.TECH;
   const isPending =
     details?.status === "pending" && user?.role === ROLES_TYPES.TENANT;
   const {
@@ -61,7 +60,7 @@ const TicketsForm = ({
       title: "",
       assignedTo: "",
     },
-    // resolver: yupResolver(propertySchema),
+    resolver: yupResolver(ticketSchema),
   });
   const [properties, setProperties] = useState<IProperty[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -79,6 +78,17 @@ const TicketsForm = ({
       setValue("assignedTo", details.assignedTo._id as string);
     }
   }, [details, setValue]);
+
+  useEffect(() => {
+    if (assignee.length > 0) {
+      clearErrors(["assignedTo"]);
+      setValue("assignedTo", assignee[0] || "");
+    }
+    if (property.length > 0) {
+      clearErrors(["propertyId"]);
+      setValue("propertyId", property[0] || "");
+    }
+  }, [assignee, property, setValue, clearErrors]);
 
   useEffect(() => {
     if (isOpenDialog) {
@@ -105,8 +115,6 @@ const TicketsForm = ({
     setLoading(true);
     const res: any = await maintenanceMutation({
       ...data,
-      propertyId: property[0],
-      assignedTo: assignee[0],
       reportedBy: user?._id as string,
       isUpdate: type === "update",
       id: details?._id,
@@ -145,8 +153,6 @@ const TicketsForm = ({
     })),
   });
 
-  const disabled = (isTechnician || !isPending) && type === "update";
-
   const form = (
     <>
       <VStack gap={4} alignItems={"start"}>
@@ -156,7 +162,6 @@ const TicketsForm = ({
           id="title"
           errors={errors}
           register={register}
-          disabled={disabled}
         />
         <Inputs
           type={"textarea"}
@@ -165,7 +170,6 @@ const TicketsForm = ({
           id="description"
           errors={errors}
           register={register}
-          disabled={disabled}
         />
 
         <SelectInput
@@ -176,7 +180,7 @@ const TicketsForm = ({
           label={"Assignee"}
           errors={errors}
           value={assignee}
-          disabled={disabled}
+          id="assignedTo"
           onChange={(e: any) => setAssignee(e.value)}
         />
         <SelectInput
@@ -186,8 +190,8 @@ const TicketsForm = ({
           placeholder={"Select property"}
           label={"Property"}
           errors={errors}
+          id="propertyId"
           value={property}
-          disabled={disabled}
           onChange={(e: any) => setProperty(e.value)}
         />
       </VStack>
@@ -214,6 +218,7 @@ const TicketsForm = ({
           <BiPlus /> Report issue
         </Button>
       )}
+
       <DialogPopup
         size={"md"}
         onSubmit={handleSubmit((data) => onSubmit(data))}

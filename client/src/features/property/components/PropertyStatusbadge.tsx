@@ -15,13 +15,13 @@ const PropertyStatusBadge = ({
       minW={"80px"}
       justifyContent={"center"}
       colorPalette={
-        item.status && PROPERTY_STATUS[item.status]?.color
-          ? PROPERTY_STATUS[item.status].color
+        item?.status && PROPERTY_STATUS[item?.status]?.color
+          ? PROPERTY_STATUS[item?.status].color
           : "gray"
       }
     >
-      {item.status && PROPERTY_STATUS[item.status]?.label
-        ? PROPERTY_STATUS[item.status].label
+      {item?.status && PROPERTY_STATUS[item?.status]?.label
+        ? PROPERTY_STATUS[item?.status].label
         : "Unknown"}
     </Badge>
   );

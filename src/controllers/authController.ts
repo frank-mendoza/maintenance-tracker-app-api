@@ -88,6 +88,13 @@ export const login = async (
 
     const oneday = 1000 * 60 * 60 * 24; // 1 day in milliseconds
 
+    // Clear old token first
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
@@ -106,9 +113,10 @@ export const login = async (
 };
 
 export const logout = (req: Request, res: Response): void => {
-  res.cookie("token", "logout", {
+  res.clearCookie("token", {
     httpOnly: true,
-    expires: new Date(Date.now()),
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
   });
   res.status(StatusCodes.OK).json({ msg: "user logged out!", success: true });
 };

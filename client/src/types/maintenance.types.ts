@@ -10,6 +10,8 @@ export type MaintenanceLog = {
   status: keyof typeof PROPERTY_STATUS;
   assignedTo: User;
   reportedBy: User;
+  completedBy?: User;
+  comments?: string;
   createdAt: string;
   updatedAt: string;
   __v: number;

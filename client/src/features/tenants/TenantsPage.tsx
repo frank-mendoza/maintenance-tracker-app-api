@@ -167,7 +167,7 @@ function TenantsPage() {
           setUserDetails={setUserDetails}
         />
       }
-      onOpenFilter={(e) => setIsOpen(e.open)}
+      setIsOpen={setIsOpen}
       onSearchChange={(e) => setSearch(e.target.value)}
       onRefresh={() => {
         if (filterNumber > 0) {
@@ -184,11 +184,8 @@ function TenantsPage() {
       title={"Tenants"}
       search={search}
       isOpen={isOpen}
-      filterNumber={filterNumber}
-      filters={filtersFields}
-      onCLoseFilter={() => {
-        setIsOpen(false);
-      }}
+      filters={filters}
+      filtersFields={filtersFields}
       onSubmitFilter={() => {
         setFilters({
           ...filters,

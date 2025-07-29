@@ -9,7 +9,7 @@ export interface IUser extends Document {
   email: string;
   password?: string; // store hashed password
   role: UserRole;
-  phone: string;
+  phone?: string;
   assignedRequests?: {
     status: "pending" | "in_progress" | "completed";
     property: mongoose.Types.ObjectId | IProperty;
@@ -27,7 +27,7 @@ const userSchema = new Schema<IUser>(
     lastName: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
     manuallyCreated: { type: Boolean, default: false },
-    phone: { type: String, required: true },
+    phone: { type: String, default: null },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: false, select: false },
     role: {

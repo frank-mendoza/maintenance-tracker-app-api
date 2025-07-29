@@ -324,15 +324,14 @@ function PropertyComponent() {
         />
       }
       onRefresh={onRefresh}
-      onOpenFilter={(e) => setIsOpen(e.open)}
+      setIsOpen={setIsOpen}
       onSearchChange={(e) => setSearch(e.target.value)}
       actionButtons={actionButtons}
       title={"Properties"}
       search={search}
       isOpen={isOpen}
-      filterNumber={filterNumber}
-      filters={filtersFields}
-      onCLoseFilter={() => setIsOpen(false)}
+      filtersFields={filtersFields}
+      filters={filters}
       onSubmitFilter={onSubmitFilter}
     />
   );

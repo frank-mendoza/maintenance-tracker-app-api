@@ -18,30 +18,31 @@ interface DataFilterProps {
   search: string;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isOpen: boolean;
-  onOpenFilter: (e: any) => void;
   title: string;
-  filters: ReactNode;
-  onCLoseFilter: () => void;
+  filters: any;
+  filtersFields: ReactNode;
   onSubmitFilter: () => void;
   actions?: ReactNode;
   actionButtons?: ReactNode;
-  filterNumber?: number;
   onRefresh: () => void;
+  setIsOpen: any;
 }
 const DataFilter = ({
-  filterNumber,
   search,
   onSearchChange,
   isOpen,
-  onOpenFilter,
   title,
+  setIsOpen,
   filters,
-  onCLoseFilter,
+  filtersFields,
   onSubmitFilter,
   actions,
   actionButtons,
   onRefresh,
 }: DataFilterProps) => {
+  const filterNumber = Object.values(filters).filter(
+    (val) => typeof val === "string" && val.trim() !== ""
+  ).length;
   return (
     <Stack
       direction="row"
@@ -62,7 +63,7 @@ const DataFilter = ({
           closeOnInteractOutside={false}
           open={isOpen}
           placement={"center"}
-          onOpenChange={onOpenFilter}
+          onOpenChange={(e) => setIsOpen(e.open)}
         >
           <Dialog.Trigger asChild>
             <IconButton
@@ -85,11 +86,17 @@ const DataFilter = ({
                 <Dialog.Title>Filter {title}</Dialog.Title>
               </Dialog.Header>
               <Dialog.Body my={4} py={0}>
-                <Stack gap={4}>{filters}</Stack>
+                <Stack gap={4}>{filtersFields}</Stack>
               </Dialog.Body>
               <Dialog.Footer>
                 <Stack direction="row" justify="flex-end">
-                  <Button px={4} onClick={onCLoseFilter} variant="ghost">
+                  <Button
+                    px={4}
+                    onClick={() => {
+                      setIsOpen(false);
+                    }}
+                    variant="ghost"
+                  >
                     Close
                   </Button>
                   <Button px={4} colorScheme="blue" onClick={onSubmitFilter}>

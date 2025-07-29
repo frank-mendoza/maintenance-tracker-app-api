@@ -10,6 +10,7 @@ import Property from "../models/Property";
 import MaintenanceLog from "../models/MaintenanceLog";
 import { buildGenericQuery } from "../utils/buildQuery";
 import { getPaginationAndSort } from "../utils/paginationAndSort";
+import { TIKET_STATUS } from "../utils/constants";
 
 export const createMaintenanceTicket = async (req: Request, res: Response) => {
   try {
@@ -116,6 +117,7 @@ export const getMaintenanceLogs = async (req: Request, res: Response) => {
         { path: "propertyId" },
         { path: "assignedTo" },
         { path: "reportedBy" },
+        { path: "completedBy" },
       ]);
 
     const totalTickets = await MaintenanceLog.countDocuments(queryObject);
@@ -186,11 +188,21 @@ export const updateMaintenanceLogStatus = async (
       });
       return;
     }
+    if (!req.body.comments && req.body.status === TIKET_STATUS.DISCARDED) {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "Comments are required for discarded status",
+        error: true,
+      });
+      return;
+    }
 
     const updatedTicket = await MaintenanceLog.findByIdAndUpdate(
       req.params.id,
       {
         status: req.body.status,
+        comments: req.body.comments || null,
+        completedBy:
+          req.body.status === TIKET_STATUS.COMPLETED ? req.body.userId : null,
       },
       { new: true }
     );

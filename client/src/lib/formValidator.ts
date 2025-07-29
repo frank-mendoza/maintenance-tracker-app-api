@@ -60,6 +60,13 @@ export const propertySchema = yup.object({
   rent: yup.number().required("Rent is required").default(0),
 });
 
+export const ticketSchema = yup.object({
+  propertyId: yup.string().required("Property is required"),
+  description: yup.string().required("Issue description is required"),
+  title: yup.string().required("Issue name is required"),
+  assignedTo: yup.string().required("Assignee is required"),
+});
+
 export const tenantSchema = yup.object({
   role: yup.string().required("Role is required"),
   phone: yup.string().required("Phone is required"),
