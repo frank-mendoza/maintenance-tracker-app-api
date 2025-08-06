@@ -6,9 +6,9 @@
     "setup-project": "npm i && cd client && npm i",
     "server": "ts-node-dev --respawn src/index.ts",
     "client": "cd client && npm run dev",
-    "dev": "concurrently --kill-others-on-fail \" npm run server\" \" npm run client\"",
+    "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
     "setup-production-app": "npm i && cd client && npm i && npm run build",
-    "build": "npm i && tsc && npm run build",
+    "build": "tsc",
     "start": "node dist/index.js"
   },
   "keywords": [],
