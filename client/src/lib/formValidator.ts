@@ -69,7 +69,6 @@ export const ticketSchema = yup.object({
 
 export const tenantSchema = yup.object({
   role: yup.string().required("Role is required"),
-  phone: yup.string().required("Phone is required"),
   name: yup.string().required("Name must be a string"),
   email: yup
     .string()

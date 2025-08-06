@@ -17,6 +17,6 @@ export interface IProperty {
   rent: number; // monthly rent per unit
   type?: "apartment" | "house" | "boarding house" | "condo"; // e.g., "Apartments", "House", etc.
   units: number; // number of apartments or rooms
-  status?: "pending" | "in_progress" | "completed";
+  status?: "active" | "inactive";
   tenants?: string[]; // references to Tenant documents
 }

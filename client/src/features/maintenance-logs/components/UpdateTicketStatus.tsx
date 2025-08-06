@@ -1,7 +1,6 @@
 import HoverImage from "@/components/Hover";
 import { toaster } from "@/components/ui/toaster";
 import { PROPERTY_STATUS } from "@/lib/constants/constants";
-import PropertyStatusBadge from "@/features/property/components/PropertyStatusbadge";
 import { updateTicketStatus } from "@/lib/api/maintenance";
 import {
   getAllowedNextStatuses,
@@ -23,6 +22,8 @@ import {
 import moment from "moment";
 import { useState } from "react";
 import TicketStatus from "./TicketStatus";
+import TicketStatusBadge from "./TicketStatusbadge";
+import { useRouter } from "next/navigation";
 
 type CustomDialogProps = {
   setUpdateTicket: any;
@@ -42,6 +43,7 @@ const UpdateTicketStatus = ({
   setLoading,
 }: CustomDialogProps) => {
   const { user } = useGlobalStore();
+  const router = useRouter();
   const { discarded, completed } = PROPERTY_STATUS;
 
   const ticket = updateTicket?.ticket;
@@ -55,8 +57,6 @@ const UpdateTicketStatus = ({
     updateTicket?.isDiscarded ? discarded.value : (ticket?.status as string),
     user?.role as any
   );
-
-  console.log(allowedNext);
 
   const nxtStatus = () => {
     if (updateTicket.isDiscarded) return discarded.value;
@@ -154,9 +154,11 @@ const UpdateTicketStatus = ({
         <Dialog.Positioner>
           <Dialog.Content>
             <Dialog.Header alignItems={"center"}>
-              <Dialog.Title>{renderTitle()}</Dialog.Title>
+              <Dialog.Title textTransform={"capitalize"}>
+                {renderTitle()}
+              </Dialog.Title>
               {(isCompleted || isDiscarded) && !updateTicket?.isDiscarded && (
-                <PropertyStatusBadge item={ticket as any} />
+                <TicketStatusBadge status={ticket.status} />
               )}
             </Dialog.Header>
             <Dialog.Body>
@@ -178,7 +180,7 @@ const UpdateTicketStatus = ({
                 </Box>
                 <Box mb={4}>
                   <Text>Property name: </Text>
-                  <Text fontWeight={600}>{ticket?.property.name || "-"}</Text>
+                  <Text fontWeight={600}>{ticket?.property?.name || "-"}</Text>
                 </Box>
                 <Box mb={4}>
                   <Text>Reported by: </Text>
@@ -231,6 +233,7 @@ const UpdateTicketStatus = ({
                       ticket: null,
                       isDiscarded: false,
                     });
+                    router.replace(location.pathname);
                   }}
                   variant="outline"
                 >

@@ -15,7 +15,7 @@ import upload from "../middleware/multerMiddleware";
 const registerFields = {
   name: true,
   email: true,
-  phone: true,
+  // phone: true,
   role: true,
   lastName: true,
 };

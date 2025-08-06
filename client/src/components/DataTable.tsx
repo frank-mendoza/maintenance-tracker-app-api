@@ -150,6 +150,7 @@ const DataTable = ({
               left={0}
               width={"100%"}
               py={5}
+              gap={2}
             >
               <Spinner
                 color="red.500"
@@ -165,8 +166,14 @@ const DataTable = ({
       return (
         <Table.Row>
           <td>
-            <Center width={"100%"} py={5} mt={5}>
-              <Text>No data available</Text>
+            <Center
+              position={"absolute"}
+              top={"20%"}
+              left={0}
+              width={"100%"}
+              py={5}
+            >
+              <Text color="colorPalette.600">No data available</Text>
             </Center>
           </td>
         </Table.Row>
@@ -175,7 +182,6 @@ const DataTable = ({
       return (
         <Table.Row key={idx}>
           {columns.map((col) => {
-            console.log(col);
             const isActions = col.key === "actions";
             const valueRender =
               (row as any)[col.key] || getValueByPath(row, col.key);

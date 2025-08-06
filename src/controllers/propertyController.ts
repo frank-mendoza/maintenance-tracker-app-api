@@ -153,5 +153,11 @@ export const updateProperty = async (req: Request, res: Response) => {
 export const deleteProperty = async (req: Request, res: Response) => {
   const removedProperty = await Property.findByIdAndDelete(req.params.id);
 
-  res.status(StatusCodes.OK).json({ property: removedProperty });
+  res
+    .status(StatusCodes.OK)
+    .json({
+      property: removedProperty,
+      success: true,
+      msg: "Successfully removed property",
+    });
 };

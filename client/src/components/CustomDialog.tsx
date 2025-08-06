@@ -16,12 +16,14 @@ type CustomDialogProps = {
   onSubmit: () => void;
   onClose: () => void;
   hideSaveBtn?: boolean;
+  isDirty: boolean;
   size?: ConditionalValue<
     "sm" | "md" | "lg" | "xl" | "xs" | "cover" | "full" | undefined
   >;
 };
 
 const DialogPopup = ({
+  isDirty,
   onOpenChange,
   open,
   content,
@@ -62,7 +64,7 @@ const DialogPopup = ({
                       minWidth={100}
                       colorPalette={"green"}
                       type="submit"
-                      disabled={loading}
+                      disabled={loading || !isDirty}
                     >
                       {loading ? <Spinner /> : "Save"}
                     </Button>

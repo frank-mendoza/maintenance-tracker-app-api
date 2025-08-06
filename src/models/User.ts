@@ -1,7 +1,8 @@
 import mongoose, { Schema, model, Document } from "mongoose";
 import { IProperty } from "./Property";
+import { TIKET_STATUS } from "../utils/constants";
 
-export type UserRole = "tenant" | "landlord" | "technician";
+export type UserRole = "tenant" | "landlord" | "technician" | "admin";
 
 export interface IUser extends Document {
   name: string;
@@ -11,7 +12,7 @@ export interface IUser extends Document {
   role: UserRole;
   phone?: string;
   assignedRequests?: {
-    status: "pending" | "in_progress" | "completed";
+    status: (typeof TIKET_STATUS)[keyof typeof TIKET_STATUS];
     property: mongoose.Types.ObjectId | IProperty;
   }[]; // maintenance IDs (for technicians)
   propertiesOwned?: string[]; // property IDs (for landlords)

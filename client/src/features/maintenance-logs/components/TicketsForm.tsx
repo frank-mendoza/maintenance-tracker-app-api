@@ -68,7 +68,7 @@ const TicketsForm = ({
     clearErrors,
     setValue,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TicketData>({
     defaultValues: {
       propertyId: "",
@@ -280,6 +280,7 @@ const TicketsForm = ({
 
       <DialogPopup
         size={"md"}
+        isDirty={isDirty}
         hideSaveBtn={(isLandlord || !isPending) && type === "update"}
         onSubmit={handleSubmit((data) => onSubmit(data))}
         onOpenChange={(e) => setIsOpenDialog(e.open)}

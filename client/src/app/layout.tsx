@@ -12,8 +12,8 @@ export const inter = Inter({
 export const metadata: Metadata = {
   // metadataBase: new URL('https://yourdomain.com'),
   title: {
-    default: "My Rental App",
-    template: "%s | My Rental App",
+    default: "Maintenance Tracker App",
+    template: "%s | Maintenance Tracker App",
   },
 };
 

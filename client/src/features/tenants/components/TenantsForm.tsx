@@ -34,7 +34,7 @@ const TenantsForm = ({
     clearErrors,
     setValue,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<any>({
     defaultValues: details
       ? {
@@ -203,6 +203,7 @@ const TenantsForm = ({
         <BiPlus /> Add user
       </Button>
       <DialogPopup
+        isDirty={isDirty}
         hideSaveBtn={isDisabled}
         size={"sm"}
         onSubmit={handleSubmit((data) => onSubmit(data))}

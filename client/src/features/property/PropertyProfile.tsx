@@ -1,17 +1,6 @@
 "use client";
-import {
-  Box,
-  Flex,
-  Heading,
-  Text,
-  HStack,
-  Grid,
-  Image,
-} from "@chakra-ui/react";
+import { Box, Flex, Heading, Text, HStack, Image } from "@chakra-ui/react";
 import { FiMapPin } from "react-icons/fi";
-import { GridItemsList, items } from "./PropertyPage";
-import { MdApartment } from "react-icons/md";
-import GroupedAvatars from "@/components/GroupedAvatars";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getPropertyDetails } from "@/lib/api/property";
@@ -19,8 +8,7 @@ import { toaster } from "@/components/ui/toaster";
 import { IProperty } from "@/types/property.types";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { Loading } from "@/components/Loading";
-import RecentyAdded from "./components/RecentyAdded";
-import PropertyForm from "./components/PropertyForm";
+import moment from "moment";
 import MaintenanceStatus from "@/components/Status";
 
 const PropertyProfile = () => {
@@ -29,7 +17,7 @@ const PropertyProfile = () => {
   const [trigger, setTrigger] = useState(true);
   const [details, setDetails] = useState<IProperty | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isOpenDialog, setIsOpenDialog] = useState(false);
+  // const [isOpenDialog, setIsOpenDialog] = useState(false);
 
   useEffect(() => {
     if (trigger) {
@@ -57,7 +45,30 @@ const PropertyProfile = () => {
         setLoadingSpinner(false);
       })();
     }
-  }, [params, trigger]);
+  }, [params, setLoadingSpinner, trigger]);
+
+  const detailsList = [
+    {
+      label: "Property Description",
+      value: details?.description,
+    },
+    {
+      label: "Property Type",
+      value: details?.type,
+    },
+    {
+      label: "Monthly Rate",
+      value: `PHP` + " " + details?.units,
+    },
+    {
+      label: "Date Created",
+      value: moment(details?.createdAt).format("MMM D YYYY"),
+    },
+    {
+      label: "Status",
+      value: "",
+    },
+  ];
 
   if (loadingSpiner) return <Loading />;
   return (
@@ -66,13 +77,13 @@ const PropertyProfile = () => {
         <Heading size="lg" mb={6}>
           Property Profile
         </Heading>
-        <PropertyForm
+        {/* <PropertyForm
           setTrigger={setTrigger}
           details={details}
           type="update"
           isOpenDialog={isOpenDialog}
           setIsOpenDialog={setIsOpenDialog}
-        />
+        /> */}
       </Flex>
 
       <Flex gap={8} flexWrap="wrap">
@@ -88,7 +99,7 @@ const PropertyProfile = () => {
           <HStack gap={3} mt={5} overflowX="auto">
             {details?.images?.map((image, index) => (
               <Image
-              border='1px solid grey'
+                border="1px solid grey"
                 key={index}
                 src={image.path}
                 cursor="pointer"
@@ -109,68 +120,31 @@ const PropertyProfile = () => {
           </Heading>
           <Flex alignItems={"center"} gap={2}>
             <FiMapPin color="#a1a1aa" />
-            <Text color="gray.400">{details?.location?.province}</Text>
+            <Text color="gray.400">
+              {details?.location?.town}, {details?.location?.province}
+            </Text>
           </Flex>
 
-          <Box my={5}>
-            <Heading size={"md"} mb={4}>
-              Property Details
-            </Heading>
-            <div>
-              <Text fontSize={14} fontWeight={500} color={"gray.600"} mb={4}>
-                Description
+          {detailsList.map((detail, i) => (
+            <Box key={i} my={3}>
+              <Text fontSize={14} fontWeight={600} color={"gray.600"} mb={2}>
+                {detail.label}
               </Text>
-              <Text fontSize="sm" color="gray.400" mb={4}>
-                {details?.description || "No description available."}
-              </Text>
-            </div>
-          </Box>
-
-          <Grid templateColumns="repeat(2, 1fr)" gap="5" alignItems={"center"}>
-            <GridItemsList
-              label={"Rent"}
-              type={
-                <Text fontSize={14} color={"gray.400"}>
-                  P {details?.rent} / unit
+              {detail.label === "Status" ? (
+                <MaintenanceStatus status={details?.status} />
+              ) : (
+                <Text fontSize="sm" color="gray.400">
+                  {detail.value}
                 </Text>
-              }
-            />
-            <GridItemsList
-              label={"Number of units"}
-              type={
-                <Text fontSize={14} color={"gray.400"}>
-                  {details?.units}
-                </Text>
-              }
-            />
-            <GridItemsList
-              label={"Type"}
-              type={
-                <Flex gap={2} alignItems={"start"}>
-                  <MdApartment color="#a1a1aa" />
-                  <Text fontSize={14} color={"gray.400"}>
-                    {details?.type}
-                  </Text>
-                </Flex>
-              }
-            />
-            <GridItemsList
-              label={"Maintenance Status"}
-              type={<MaintenanceStatus status={details?.status} />}
-            />
-            <GridItemsList
-              label={"Tenants"}
-              type={<GroupedAvatars items={items} />}
-            />
-          </Grid>
+              )}
+            </Box>
+          ))}
         </Box>
       </Flex>
 
-      <RecentyAdded />
+      {/* <RecentyAdded /> */}
     </Box>
   );
 };
 
 export default PropertyProfile;
-
-

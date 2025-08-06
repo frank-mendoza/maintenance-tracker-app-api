@@ -9,9 +9,9 @@ export interface IProperty extends Document {
   description?: string;
   active: boolean;
   rent: number; // monthly rent per unit
-  type: "apartment" | "house" | "boarding house" | "condo"; // e.g., "Apartments", "House", etc.
+  type: "apartment" | "house" | "boarding house" | "condo" | "hotel"; // e.g., "Apartments", "House", etc.
   units: number; // number of apartments or rooms
-  status: "pending" | "in_progress" | "completed";
+  status: "active" | "inactive";
   tenants: mongoose.Types.ObjectId[];
   images: { path: string; public_id: string }[];
 }
@@ -30,8 +30,8 @@ const PropertySchema: Schema = new Schema(
     units: { type: Number, required: true, default: 1 },
     status: {
       type: String,
-      enum: ["pending", "in_progress", "completed"],
-      default: "pending",
+      enum: ["active", "inactive"],
+      default: "active",
     },
     tenants: [
       {

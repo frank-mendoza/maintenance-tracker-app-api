@@ -25,7 +25,7 @@ export function MainProvider({ children }: { children: ReactNode }) {
       let currentUser = user;
 
       // Fetch user if not already set
-      if (!user && localUser) {
+      if (!user && !localUser) {
         const fetched = await fetchUser();
 
         if (fetched.error) {

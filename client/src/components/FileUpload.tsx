@@ -1,7 +1,13 @@
 import { Box, Button, FileUpload, Float, Icon } from "@chakra-ui/react";
 import { LuFileImage, LuUpload, LuX } from "react-icons/lu";
 
-const FileUploadList = ({ images }: { images: File[] }) => {
+const FileUploadList = ({
+  images,
+  setImages,
+}: {
+  images: File[];
+  setImages: any;
+}) => {
   if (images.length === 0) return null;
   return (
     <FileUpload.ItemGroup flexDirection={"row"} flexWrap="wrap">
@@ -16,7 +22,14 @@ const FileUploadList = ({ images }: { images: File[] }) => {
         >
           <FileUpload.ItemPreviewImage height={"100%"} objectFit={"cover"} />
           <Float placement="top-end">
-            <FileUpload.ItemDeleteTrigger boxSize="4" layerStyle="fill.solid">
+            <FileUpload.ItemDeleteTrigger
+              onClick={() => {
+                const filtered = images.filter((img) => img.name !== file.name);
+                setImages(filtered);
+              }}
+              boxSize="4"
+              layerStyle="fill.solid"
+            >
               <LuX />
             </FileUpload.ItemDeleteTrigger>
           </Float>
@@ -78,7 +91,7 @@ const UploadFile = ({
           </Button>
         </FileUpload.Trigger>
       )}
-      <FileUploadList images={images} />
+      <FileUploadList setImages={setImages} images={images} />
     </FileUpload.Root>
   );
 };

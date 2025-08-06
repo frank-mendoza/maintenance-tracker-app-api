@@ -26,10 +26,11 @@ import { ROLES_TYPES, TicketStatus } from "@/lib/constants/constants";
 import UpdateTicketStatus from "./components/UpdateTicketStatus";
 import TicketStatusBadge from "./components/TicketStatusbadge";
 import { isDiscardVisible } from "@/lib/helper/validationStatusChange";
+import { useRouter } from "next/navigation";
 
 function MaintenanceLogs() {
   const { user } = useGlobalStore();
-
+  const router = useRouter();
   const isTechnician = user?.role === ROLES_TYPES.TECH;
   const isLandlord = user?.role === ROLES_TYPES.LANDLORD;
   const [refetch, setRefetch] = useState(false);
@@ -66,7 +67,6 @@ function MaintenanceLogs() {
   });
 
   const columns: any[] = [
-    { key: "index", label: "ID", sortable: true },
     { key: "title", label: "Ticket Name", sortable: true },
     { key: "description", label: "Description" },
     { key: "property.name", label: "Property Name" },
@@ -133,6 +133,8 @@ function MaintenanceLogs() {
                 setDetails(row);
                 setIsOpenDialog(true);
               }
+
+              router.replace(`${window.location.pathname}?id=${row._id}`);
             }}
           >
             <FaEye />{" "}

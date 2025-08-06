@@ -14,11 +14,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { BiPlus } from "react-icons/bi";
-import { FaPen } from "react-icons/fa";
 
 type PropertyFormData = {
   name: string;
@@ -34,39 +33,33 @@ const PropertyForm = ({
   setIsOpenDialog,
   isOpenDialog,
   details,
+  setDetails,
 }: {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   isOpenDialog: boolean;
   setTrigger: any;
   type: "create" | "update";
-  details?: IProperty | null; // Optional for create, required for update
+  details?: IProperty | null;
+  setDetails: any;
 }) => {
-  const params = useParams();
   const {
     register,
     handleSubmit,
     clearErrors,
-    // setValue,
+    setValue,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<PropertyFormData>({
-    defaultValues: details
-      ? {
-          name: details.name || "",
-          description: details.description || "",
-          town: details.location?.town || "",
-          province: details.location?.province || "",
-          rent: details.rent || 0,
-        }
-      : {
-          name: "",
-          description: "",
-          town: "",
-          province: "",
-          rent: 0,
-        },
+    defaultValues: {
+      name: "",
+      description: "",
+      town: "",
+      province: "",
+      rent: 0,
+    },
     resolver: yupResolver(propertySchema),
   });
+  const router = useRouter();
   const [images, setImages] = useState<File[]>([]);
   const [units, setUnits] = useState<number[]>([]);
   const [unitType, setUnitType] = useState<
@@ -75,28 +68,28 @@ const PropertyForm = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (details) {
+    if (details && isOpenDialog) {
       setUnits([details?.units || 1]);
       setUnitType([details?.type || "apartment"]);
-      // If you want to display existing image URLs, you may need to handle them separately from File[]
-      // For now, clear images state or handle conversion if needed
-      // setImages([]);
-    }
-  }, [details]);
+      setValue("name", details.name);
+      setValue("description", details?.description ?? "");
+      setValue("rent", details.rent);
+      setValue("town", details.location.town);
+      setValue("province", details.location.province);
 
-  useEffect(() => {
-    if (
-      type === "update" &&
-      isOpenDialog &&
-      details?.images?.length &&
-      images.length === 0
-    ) {
       (async () => {
         const loadedImgs = await loadImageFiles(details.images, images);
         setImages(loadedImgs);
       })();
     }
-  }, [type, isOpenDialog, details?.images, images]);
+
+    if (!isOpenDialog) {
+      setImages([]);
+      setUnits([]);
+      setUnitType([]);
+      router.replace(window.location.pathname);
+    }
+  }, [details, isOpenDialog, setValue]);
 
   const onSubmit = async (data: PropertyFormData) => {
     setLoading(true);
@@ -107,7 +100,7 @@ const PropertyForm = ({
       type: unitType[0],
       images,
       isUpdate: type === "update",
-      id: type === "update" ? (params.propertyId as string) : undefined, // Only include id for update
+      id: type === "update" ? (details?._id as string) : undefined, // Only include id for update
     });
 
     if (res?.success) {
@@ -213,7 +206,13 @@ const PropertyForm = ({
           register={register}
         />
 
-        <UploadFile type={type} images={images} setImages={setImages} />
+        <UploadFile
+          dropzone
+          size={150}
+          type={type}
+          images={images}
+          setImages={setImages}
+        />
       </VStack>
     </>
   );
@@ -225,19 +224,11 @@ const PropertyForm = ({
         p={4}
         onClick={() => setIsOpenDialog(true)}
       >
-        {type === "create" ? (
-          <>
-            {" "}
-            <BiPlus /> Add property
-          </>
-        ) : (
-          <>
-            <FaPen />
-            Update property
-          </>
-        )}
+        <BiPlus /> Add property
       </Button>
+
       <DialogPopup
+        isDirty={isDirty}
         onSubmit={handleSubmit((data) => onSubmit(data))}
         onOpenChange={(e) => setIsOpenDialog(e.open)}
         open={isOpenDialog}
@@ -247,6 +238,7 @@ const PropertyForm = ({
         onClose={() => {
           setIsOpenDialog(false);
           reset();
+          setDetails(null);
           clearErrors();
         }}
       />

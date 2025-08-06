@@ -4,34 +4,41 @@ import DataFilter from "@/components/DataFilter";
 
 import DataTable from "@/components/DataTable";
 import SelectInput from "@/components/Select";
-import { fetchUsers } from "@/lib/api/user";
+import { fetchUsers, removeUser } from "@/lib/api/user";
 import {
   Box,
   createListCollection,
+  Dialog,
   Flex,
   Heading,
   IconButton,
+  Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { BiTrash } from "react-icons/bi";
 import { FaEye } from "react-icons/fa";
 import TenantsForm from "./components/TenantsForm";
-import RemovePopup from "./components/RemovePopup";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import { User } from "@/types/user.type";
 import UserStatusbadge from "./components/UserStatusbadge";
 import moment from "moment";
+import RemoveModal from "@/components/modals/RemoveModal";
+import { useRouter } from "next/navigation";
 
 function TenantsPage() {
+  const router = useRouter();
   const [refetch, setRefetch] = useState(false);
   const [isReset, setIsReset] = useState(false);
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [isRemove, setIsRemove] = useState({
+  const [isRemove, setIsRemove] = useState<{
+    show: boolean;
+    data: User | null;
+  }>({
     show: false,
-    user: null,
+    data: null,
   });
   const [filters, setFilters] = useState<{
     role: string;
@@ -45,7 +52,7 @@ function TenantsPage() {
   const [userDetails, setUserDetails] = useState<User | null>(null);
 
   const columns = [
-    { key: "index", label: "ID", sortable: true },
+    // { key: "index", label: "ID", sortable: true },
     { key: "name", label: "First Name", sortable: true },
     { key: "lastName", label: "Last Name" },
     { key: "role", label: "Role" },
@@ -82,6 +89,7 @@ function TenantsPage() {
             onClick={() => {
               setUserDetails(row);
               setIsOpenDialog(true);
+              router.replace(`${window.location.pathname}?id=${row._id}`);
             }}
           >
             <FaEye />{" "}
@@ -92,7 +100,7 @@ function TenantsPage() {
             onClick={() =>
               setIsRemove({
                 show: true,
-                user: row,
+                data: row,
               })
             }
           >
@@ -213,12 +221,27 @@ function TenantsPage() {
         columns={columns}
         source={fetchUsers}
       />
-      <RemovePopup
+      <RemoveModal
         setLoading={setRefetch}
         setIsRemove={setIsRemove}
         isRemove={isRemove}
         loading={refetch}
-      />
+        endpoint={removeUser}
+      >
+        <Dialog.Header>
+          <Dialog.Title>Remove User</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text>
+            Are you sure you want to remove{" "}
+            <strong>
+              {" "}
+              {isRemove?.data?.name} {isRemove?.data?.lastName}
+            </strong>
+            ?
+          </Text>
+        </Dialog.Body>
+      </RemoveModal>
     </Box>
   );
 }

@@ -13,13 +13,13 @@ const TicketStatusBadge = ({
       justifyContent={"center"}
       colorPalette={
         TICKET_STATUS_PROPS[
-          status.toUpperCase() as keyof typeof TICKET_STATUS_PROPS
+          status?.toUpperCase() as keyof typeof TICKET_STATUS_PROPS
         ]?.color
       }
     >
       {
         TICKET_STATUS_PROPS[
-          status.toUpperCase() as keyof typeof TICKET_STATUS_PROPS
+          status?.toUpperCase() as keyof typeof TICKET_STATUS_PROPS
         ].label
       }
     </Badge>

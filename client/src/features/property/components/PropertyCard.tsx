@@ -1,4 +1,3 @@
-import GroupedAvatars from "@/components/GroupedAvatars";
 import {
   Card,
   Flex,
@@ -7,12 +6,11 @@ import {
   Image,
   Link,
   Separator,
-  Stack,
   Text,
 } from "@chakra-ui/react";
 import { FiMapPin } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
-import { GridItemsList, items } from "../PropertyPage";
+import { GridItemsList } from "../PropertyPage";
 import { IProperty } from "@/types/property.types";
 import MaintenanceStatus from "@/components/Status";
 
@@ -82,10 +80,6 @@ export const PropertyCardList = ({ data }: { data: IProperty }) => {
           label={"Status"}
           type={<MaintenanceStatus status={data?.status} />}
         />
-        <GridItemsList
-          label={"Tenants"}
-          type={<GroupedAvatars items={items} />}
-        />
       </Grid>
     </Link>
   );
@@ -133,9 +127,6 @@ const PropertyCard = ({ data }: { data: IProperty }) => {
         <Separator my={2} />
         <Card.Footer gap="2" p={0} justifyContent={"space-between"}>
           <Text color="#a1a1aa">Tenants</Text>
-          <Stack>
-            <GroupedAvatars items={items} />
-          </Stack>
         </Card.Footer>
       </Card.Root>
     </Link>

@@ -54,3 +54,6 @@ export const propertyMutation = (body: {
 export const getPropertyDetails = (id: string) => {
   return apiRequest("get", `/property/${id}`);
 };
+
+export const removeProperty = (id: string) =>
+  apiRequest("delete", `/property/${id}`);
