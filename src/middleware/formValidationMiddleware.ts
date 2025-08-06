@@ -5,7 +5,6 @@ import {
   UnauthorizedError,
 } from "../errors/customErrors";
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { ValidationChain } from "express-validator";
 import User from "../models/User";
 import { APRTMENT_TYPE, TIKET_STATUS, USER_TYPES } from "../utils/constants";
 import Property from "../models/Property";
@@ -13,7 +12,7 @@ import mongoose from "mongoose";
 import MaintenanceLog from "../models/MaintenanceLog";
 
 interface WithValidationErrors {
-  (validatedValues: any[]): [ValidationChain[], RequestHandler];
+  (validatedValues: any[]): [any[], RequestHandler];
 }
 
 type FieldOptions = {
@@ -36,7 +35,7 @@ const withValidationErrors: WithValidationErrors = (validatedValues) => {
       if (!errors.isEmpty()) {
         const errorMessages = errors
           .array()
-          .map((error) => error.msg as string);
+          .map((error: any) => error.msg as string);
         // if (errorMessages[0].startsWith("no job")) {
         //   throw new NotFoundError(errorMessages[0]);
         // }
@@ -63,7 +62,7 @@ export const validateInputFields = (fields: FieldOptions) =>
           .withMessage("Email is required")
           .isEmail()
           .withMessage("Invalid email format")
-          .custom(async (email) => {
+          .custom(async (email: any) => {
             if (fields.isLogin) return; // Skip email check for login
             const user = await User.findOne({ email });
             if (user) {
@@ -107,17 +106,17 @@ export const validateInputProperty = withValidationErrors([
   body("rent")
     .isNumeric()
     .withMessage("Rent must be a number")
-    .custom((val) => val >= 0)
+    .custom((val: number) => val >= 0)
     .withMessage("Rent must be 0 or greater"),
   body("units")
     .isNumeric()
     .withMessage("Unit must be a number")
-    .custom((val) => val >= 0)
+    .custom((val: number) => val >= 0)
     .withMessage("Unit must be 0 or greater"),
 ]); // remove falsy entries
 
 export const validateProperty = withValidationErrors([
-  param("id").custom(async (value, { req }) => {
+  param("id").custom(async (value: any) => {
     const isValidId = mongoose.Types.ObjectId.isValid(value);
 
     if (!isValidId) throw new BadRequestError("Invalid MongoDB id");
@@ -128,7 +127,7 @@ export const validateProperty = withValidationErrors([
 ]);
 
 export const validateTicket = withValidationErrors([
-  param("id").custom(async (value, { req }) => {
+  param("id").custom(async (value: any) => {
     const isValidId = mongoose.Types.ObjectId.isValid(value);
 
     if (!isValidId) throw new BadRequestError("Invalid MongoDB id");
@@ -160,7 +159,7 @@ export const validateInputTickets = withValidationErrors([
 ]);
 
 export const validateUser = withValidationErrors([
-  param("id").custom(async (value, { req }) => {
+  param("id").custom(async (value: any) => {
     const isValidId = mongoose.Types.ObjectId.isValid(value);
 
     if (!isValidId) throw new BadRequestError("Invalid MongoDB id");
