@@ -10,12 +10,6 @@
 !.yarn/releases
 !.yarn/versions
 
-client/
-/client/node_modules
-/client/.env.local
-
-dist/
-
 # env files (can opt-in for committing if needed)
 .env*
 
