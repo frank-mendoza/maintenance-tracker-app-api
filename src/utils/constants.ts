@@ -1,3 +1,5 @@
+import { IUser } from "../models/User";
+
 export const APRTMENT_TYPE = {
   APARTMENT: "apartment",
   HOUSE: "house",
@@ -27,7 +29,7 @@ type Status = (typeof TIKET_STATUS)[keyof typeof TIKET_STATUS];
 
 export const STATUS_TRANSITIONS: Record<
   Status,
-  { next: Status[]; roles: Role[] }
+  { next: Status[]; roles: IUser["role"][] }
 > = {
   pending: {
     next: ["approved", "discarded"],
