@@ -11,17 +11,28 @@ import {
   validateTicket,
   validateUpdateTickets,
 } from "../middleware/formValidationMiddleware";
+import upload from "../middleware/multerMiddleware";
 
 const router = Router();
 
-router.post("/create", ...validateInputTickets, createMaintenanceTicket);
+router.post(
+  "/create",
+  upload.array("images", 10),
+  ...validateInputTickets,
+  createMaintenanceTicket
+);
 
 router.get("/logs", getMaintenanceLogs);
 
 router
   .route("/:id")
   .get(...validateTicket, getMaintenanceLogInfo)
-  .patch(...validateTicket, ...validateInputTickets, updateMaintenanceLog);
+  .patch(
+    upload.array("images", 10),
+    ...validateTicket,
+    ...validateInputTickets,
+    updateMaintenanceLog
+  );
 
 router
   .route("/:id/update-status")

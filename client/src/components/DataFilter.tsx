@@ -45,19 +45,19 @@ const DataFilter = ({
   ).length;
   return (
     <Stack
-      direction="row"
+      direction={{ md: "row", base: "column" }}
       justify={actions ? "space-between" : "end"}
       align="center"
       mb={2}
     >
-      <Flex gap={2} align="center">
-        <Input
-          placeholder="Search..."
-          value={search}
-          p={4}
-          onChange={onSearchChange}
-          maxW="400px"
-        />
+      <Input
+        placeholder="Search..."
+        value={search}
+        p={4}
+        onChange={onSearchChange}
+        maxW={{ md: "400px", base: "100%" }}
+      />
+      <Flex wrap={"wrap"} gap={2} align="center">
         <Dialog.Root
           lazyMount
           closeOnInteractOutside={false}
@@ -118,8 +118,8 @@ const DataFilter = ({
             <BiRefresh size={60} />
           </IconButton>
         </Tooltip>
+        {actions && actions}
       </Flex>
-      {actions && actions}
     </Stack>
   );
 };

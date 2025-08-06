@@ -4,7 +4,7 @@
 
 import Inputs from "@/components/inputs/Inputs";
 import { toaster } from "@/components/ui/toaster";
-import { ROLES_TYPES } from "@/constants/constants";
+import { ROLES_TYPES } from "@/lib/constants/constants";
 import { loginUser } from "@/lib/api/auth";
 import { userLoginSchema } from "@/lib/formValidator";
 import useGlobalStore from "@/lib/store/useGlobalStore";

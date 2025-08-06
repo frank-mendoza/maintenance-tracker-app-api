@@ -1,4 +1,4 @@
-import { PROPERTY_STATUS } from "@/constants/constants";
+import { PROPERTY_STATUS } from "@/lib/constants/constants";
 import { MaintenanceLog } from "@/types/maintenance.types";
 import { IProperty } from "@/types/property.types";
 import { Badge } from "@chakra-ui/react";

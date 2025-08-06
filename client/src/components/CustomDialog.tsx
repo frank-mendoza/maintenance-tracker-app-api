@@ -15,6 +15,7 @@ type CustomDialogProps = {
   title: React.ReactNode;
   onSubmit: () => void;
   onClose: () => void;
+  hideSaveBtn?: boolean;
   size?: ConditionalValue<
     "sm" | "md" | "lg" | "xl" | "xs" | "cover" | "full" | undefined
   >;
@@ -29,11 +30,12 @@ const DialogPopup = ({
   onClose,
   loading,
   size,
+  hideSaveBtn,
 }: CustomDialogProps) => {
   return (
     <Dialog.Root
       closeOnInteractOutside={false}
-      size={size || "lg"}
+      size={{ base: "xs", xl: size || "lg" }}
       lazyMount
       open={open}
       onOpenChange={onOpenChange}
@@ -52,17 +54,19 @@ const DialogPopup = ({
                 <Dialog.Footer p={0} mt={5}>
                   <Dialog.ActionTrigger asChild>
                     <Button onClick={onClose} variant="outline">
-                      Cancel
+                      {hideSaveBtn ? "Close" : "Cancel"}
                     </Button>
                   </Dialog.ActionTrigger>
-                  <Button
-                    minWidth={100}
-                    colorPalette={"green"}
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading ? <Spinner /> : "Save"}
-                  </Button>
+                  {!hideSaveBtn && (
+                    <Button
+                      minWidth={100}
+                      colorPalette={"green"}
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? <Spinner /> : "Save"}
+                    </Button>
+                  )}
                 </Dialog.Footer>
               </form>
             </Dialog.Body>

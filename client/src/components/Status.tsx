@@ -1,4 +1,4 @@
-import { MAINTENANCE_STATUS } from "@/constants/constants";
+import { MAINTENANCE_STATUS } from "@/lib/constants/constants";
 import { IProperty } from "@/types/property.types";
 import { Flex, Text } from "@chakra-ui/react";
 import { GoDotFill } from "react-icons/go";

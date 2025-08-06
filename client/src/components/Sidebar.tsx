@@ -22,7 +22,6 @@ import {
   FiUsers,
   FiTool,
   FiUser,
-  FiSettings,
   FiMenu,
 } from "react-icons/fi";
 
@@ -53,7 +52,7 @@ export default function Sidebar() {
     },
     { href: "/maintenance-logs", label: "Maintenance Logs", icon: <FiTool /> },
     { href: "/account", label: "Account", icon: <FiUser /> },
-    { href: "/settings", label: "Settings", icon: <FiSettings /> },
+    // { href: "/settings", label: "Settings", icon: <FiSettings /> },
     // { href: "/logout", label: "Logout", icon: <FiLogOut /> },
   ];
 
@@ -105,7 +104,11 @@ export default function Sidebar() {
       </Box>
 
       {/* Mobile Drawer */}
-      <Drawer.Root open={open} onOpenChange={onOpen}>
+      <Drawer.Root
+        open={open}
+        closeOnInteractOutside={true}
+        onOpenChange={onOpen}
+      >
         <Portal>
           <Drawer.Backdrop />
           <Drawer.Positioner>

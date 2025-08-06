@@ -2,7 +2,7 @@
 
 import Inputs from "@/components/inputs/Inputs";
 import SelectInput from "@/components/Select";
-import { ROLES } from "@/constants/constants";
+import { ROLES } from "@/lib/constants/constants";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import {
   Box,

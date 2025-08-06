@@ -12,7 +12,7 @@ const GlobalProvider = ({
 }>) => {
   return (
     <MainProvider>
-      <Flex minH="100vh">
+      <Flex h={{ base: "100vh", sm: "100%" }}>
         <Sidebar />
         <Box flex="1" p={6} bg="gray.50" width={"calc(100% - 240px)"}>
           <Navbar />

@@ -2,11 +2,11 @@ import { StatusCodes } from "http-status-codes";
 import Property from "../models/Property";
 import { Request, Response } from "express";
 import { BadRequestError, NotFoundError } from "../errors/customErrors";
-import { formatImage } from "../middleware/multerMiddleware";
 
 import { v2 as cloudinary } from "cloudinary";
 import { getPaginationAndSort } from "../utils/paginationAndSort";
 import { buildGenericQuery } from "../utils/buildQuery";
+import { uploadMultipleImages } from "../utils/mediaUpload";
 
 export const createProperty = async (req: Request, res: Response) => {
   try {
@@ -22,23 +22,10 @@ export const createProperty = async (req: Request, res: Response) => {
       // throw new BadRequestError("Property with this name already exists");
     }
 
-    const imageUrls: { path: string; public_id: string }[] = [];
+    let imageUrls: { path: string; public_id: string }[] = [];
 
     if (req.files && Array.isArray(req.files)) {
-      for (const file of req.files) {
-        const file64 = formatImage(file);
-        if (typeof file64 === "string") {
-          const uploadRes = await cloudinary.uploader.upload(file64, {
-            folder: "properties",
-          });
-          imageUrls.push({
-            path: uploadRes.secure_url,
-            public_id: uploadRes.public_id,
-          });
-        } else {
-          throw new BadRequestError("Invalid image format");
-        }
-      }
+      imageUrls = await uploadMultipleImages(req.files, "properties");
     }
 
     const newProperty = await Property.create({
@@ -138,23 +125,10 @@ export const updateProperty = async (req: Request, res: Response) => {
       }
     }
 
-    const newImageUrls: { path: string; public_id: string }[] = [];
+    let newImageUrls: { path: string; public_id: string }[] = [];
 
     if (req.files && Array.isArray(req.files)) {
-      for (const file of req.files) {
-        const file64 = formatImage(file);
-        if (typeof file64 === "string") {
-          const uploadRes = await cloudinary.uploader.upload(file64, {
-            folder: "properties",
-          });
-          newImageUrls.push({
-            path: uploadRes.secure_url,
-            public_id: uploadRes.public_id,
-          });
-        } else {
-          throw new BadRequestError("Invalid image format");
-        }
-      }
+      newImageUrls = await uploadMultipleImages(req.files, "properties");
     }
 
     // 🧩 Step 4: update property, include combined images

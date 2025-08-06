@@ -16,25 +16,22 @@ import { useState } from "react";
 import { BiTrash } from "react-icons/bi";
 import { FaEye } from "react-icons/fa";
 import useGlobalStore from "@/lib/store/useGlobalStore";
-import UnauthorizedPage from "@/components/UnauthorizedPage";
 import { User } from "@/types/user.type";
 import moment from "moment";
-import PropertyStatusBadge from "../property/components/PropertyStatusbadge";
 import { MaintenanceLog } from "@/types/maintenance.types";
 import { fetchTicketLogs } from "@/lib/api/maintenance";
 import TicketsForm from "./components/TicketsForm";
 import RemovePopup from "../tenants/components/RemovePopup";
-import {
-  PROPERTY_STATUS,
-  ROLES_TYPES,
-  TicketStatus,
-} from "@/constants/constants";
+import { ROLES_TYPES, TicketStatus } from "@/lib/constants/constants";
 import UpdateTicketStatus from "./components/UpdateTicketStatus";
+import TicketStatusBadge from "./components/TicketStatusbadge";
+import { isDiscardVisible } from "@/lib/helper/validationStatusChange";
 
 function MaintenanceLogs() {
   const { user } = useGlobalStore();
 
   const isTechnician = user?.role === ROLES_TYPES.TECH;
+  const isLandlord = user?.role === ROLES_TYPES.LANDLORD;
   const [refetch, setRefetch] = useState(false);
   const [isReset, setIsReset] = useState(false);
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -100,7 +97,9 @@ function MaintenanceLogs() {
     {
       key: "status",
       label: "Ticket Status",
-      render: (item: MaintenanceLog) => <PropertyStatusBadge item={item} />,
+      render: (item: MaintenanceLog) => (
+        <TicketStatusBadge status={item.status} />
+      ),
     },
     {
       key: "createdAt",
@@ -125,7 +124,7 @@ function MaintenanceLogs() {
             variant="ghost"
             aria-label="View"
             onClick={() => {
-              if (isTechnician) {
+              if (isTechnician || isLandlord) {
                 setUpdateTicket({
                   show: true,
                   ticket: row,
@@ -138,23 +137,21 @@ function MaintenanceLogs() {
           >
             <FaEye />{" "}
           </IconButton>
-          {(row.status === PROPERTY_STATUS.in_progress.value ||
-            row.status === PROPERTY_STATUS.pending.value) &&
-            user?.role === ROLES_TYPES.TECH && (
-              <IconButton
-                variant="ghost"
-                aria-label="Delete"
-                onClick={() =>
-                  setUpdateTicket({
-                    show: true,
-                    ticket: row,
-                    isDiscarded: true,
-                  })
-                }
-              >
-                <BiTrash color="red" />
-              </IconButton>
-            )}
+          {isDiscardVisible(row.status, user) && (
+            <IconButton
+              variant="ghost"
+              aria-label="Delete"
+              onClick={() =>
+                setUpdateTicket({
+                  show: true,
+                  ticket: row,
+                  isDiscarded: true,
+                })
+              }
+            >
+              <BiTrash color="red" />
+            </IconButton>
+          )}
         </>
       ),
     },
@@ -256,19 +253,18 @@ function MaintenanceLogs() {
         isRemove={isRemove}
         loading={refetch}
       />
-      <UpdateTicketStatus
-        setUpdateTicket={setUpdateTicket}
-        updateTicket={updateTicket}
-        loading={refetch}
-        setLoading={setRefetch}
-      />
+      {updateTicket.show && (
+        <UpdateTicketStatus
+          setUpdateTicket={setUpdateTicket}
+          updateTicket={updateTicket}
+          loading={refetch}
+          setLoading={setRefetch}
+        />
+      )}
     </Box>
   );
 }
 
 export default function Maintenance() {
-  const { user } = useGlobalStore();
-  if (user?.role === "landlord") return <UnauthorizedPage />;
-
   return <MaintenanceLogs />;
 }

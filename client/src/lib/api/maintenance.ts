@@ -18,16 +18,30 @@ export const maintenanceMutation = (body: {
   description: string;
   assignedTo: string;
   reportedBy: string;
+  images: File[];
   isUpdate?: boolean; // Optional for create, required for update
   id?: string; // Optional for create, required for update
 }) => {
-  const formData = {
-    propertyId: body.propertyId,
-    title: body.title,
-    description: body.description,
-    assignedTo: body.assignedTo,
-    reportedBy: body.reportedBy,
-  };
+  // const formData = {
+  //   propertyId: body.propertyId,
+  //   title: body.title,
+  //   description: body.description,
+  //   assignedTo: body.assignedTo,
+  //   reportedBy: body.reportedBy,
+  // };
+
+  const formData = new FormData();
+  formData.append("propertyId", body.propertyId);
+  formData.append("title", body.title);
+  formData.append("description", body.description);
+  formData.append("assignedTo", body.assignedTo);
+  formData.append("reportedBy", body.reportedBy);
+  // Append multiple images
+  if (body.images && body.images.length > 0) {
+    Array.from(body.images).forEach((file: File) => {
+      formData.append("images", file); // name must match .array('images') in backend
+    });
+  }
   return apiRequest(
     body.isUpdate ? "patch" : "post",
     `/maintenance/${body.isUpdate ? body.id : "create"}`,

@@ -1,4 +1,3 @@
-import { PROPERTY_STATUS } from "@/constants/constants";
 import { MaintenanceLog } from "@/types/maintenance.types";
 
 interface UrlToFileParams {
@@ -33,43 +32,19 @@ export function getValueByPath(obj: any, path: string): any {
   return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? null;
 }
 
-const { discarded, pending, in_progress, completed } = PROPERTY_STATUS;
-export const renderNextUpdateStatus = (updateTicket: {
-  show: boolean;
-  isDiscarded?: boolean;
-  ticket?: MaintenanceLog | null;
-}) => {
-  let textProps = {
-    color: "",
-    text: "",
-    value: "",
-    btnLabel: "",
-  };
+export const loadImageFiles = async (
+  images: MaintenanceLog["images"],
+  prevImages: File[]
+) => {
+  const files = await Promise.all(
+    (images ?? []).map(async (img) => urlToFile(img.path))
+  );
+  const combined = [...prevImages, ...files];
 
-  if (updateTicket?.isDiscarded) {
-    return {
-      color: discarded.color,
-      text: discarded.label,
-      value: discarded.value,
-      btnLabel: discarded.buttonLabel,
-    };
-  }
-  if (updateTicket?.ticket?.status === pending.value) {
-    textProps = {
-      color: in_progress.color,
-      text: in_progress.label,
-      value: in_progress.value,
-      btnLabel: in_progress.buttonLabel,
-    };
-  }
-  if (updateTicket?.ticket?.status === in_progress.value) {
-    textProps = {
-      color: completed.color,
-      text: completed.buttonLabel,
-      value: completed.value,
-      btnLabel: completed.buttonLabel,
-    };
-  }
+  // Remove duplicates by file name
+  const uniqueFiles = Array.from(
+    new Map(combined.map((file) => [file.name, file])).values()
+  );
 
-  return textProps;
+  return uniqueFiles;
 };

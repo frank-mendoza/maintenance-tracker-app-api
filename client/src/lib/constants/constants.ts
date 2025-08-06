@@ -23,6 +23,9 @@ export const TicketStatus = [
   { label: "In Progress", value: "in_progress" },
   { label: "Completed", value: "completed" },
   { label: "Discarded", value: "discarded" },
+  { label: "Approved", value: "approved" },
+  { label: "Resolved", value: "resolved" },
+  { label: "Pending Approval", value: "pending_approval" },
 ];
 
 export const ROLES_TYPES = {
@@ -38,11 +41,23 @@ export const PROPERTY_STATUS = {
     buttonLabel: "Pending",
     color: "orange",
   },
+  pending_approval: {
+    label: "Pending Approval",
+    value: "pending_approval",
+    buttonLabel: "Pending Approval",
+    color: "orange",
+  },
   in_progress: {
     label: "In Progress",
     value: "in_progress",
     buttonLabel: "Start",
     color: "blue",
+  },
+  resolved: {
+    label: "Resolved",
+    value: "resolved",
+    buttonLabel: "Resolved",
+    color: "green",
   },
   completed: {
     label: "Completed",
@@ -68,3 +83,13 @@ export const USER_STATUS = {
     color: "red",
   },
 } as const;
+
+export const TIKET_STATUS = {
+  PENDING: "pending",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  DISCARDED: "discarded",
+  APPROVED: "approved",
+  RESOLVED: "resolved",
+  PENDING_APPROVAL: "pending_approval",
+};

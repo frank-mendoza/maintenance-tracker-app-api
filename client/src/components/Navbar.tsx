@@ -79,7 +79,10 @@ export default function Navbar() {
           {/* <BiBell size={16} /> */}
           <Stack gap="0" textAlign={"right"}>
             <Text fontWeight="medium">
-              {user?.name} {user?.lastName}
+              {user?.name} {user?.lastName}{" "}
+              <Text as={"span"} fontSize={"xs"} textTransform={"capitalize"}>
+                ({user?.role})
+              </Text>
             </Text>
             <Text color="fg.muted" textStyle="sm">
               {user?.email}

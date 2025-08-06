@@ -1,8 +1,12 @@
+import HoverImage from "@/components/Hover";
 import { toaster } from "@/components/ui/toaster";
-import { PROPERTY_STATUS } from "@/constants/constants";
+import { PROPERTY_STATUS } from "@/lib/constants/constants";
 import PropertyStatusBadge from "@/features/property/components/PropertyStatusbadge";
 import { updateTicketStatus } from "@/lib/api/maintenance";
-import { renderNextUpdateStatus } from "@/lib/helper/helper";
+import {
+  getAllowedNextStatuses,
+  TICKET_STATUS_PROPS,
+} from "@/lib/helper/validationStatusChange";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { MaintenanceLog } from "@/types/maintenance.types";
 import {
@@ -14,11 +18,11 @@ import {
   Spinner,
   Box,
   Flex,
-  Badge,
   Textarea,
 } from "@chakra-ui/react";
+import moment from "moment";
 import { useState } from "react";
-import { FaArrowRight } from "react-icons/fa";
+import TicketStatus from "./TicketStatus";
 
 type CustomDialogProps = {
   setUpdateTicket: any;
@@ -39,23 +43,46 @@ const UpdateTicketStatus = ({
 }: CustomDialogProps) => {
   const { user } = useGlobalStore();
   const { discarded, completed } = PROPERTY_STATUS;
+
+  const ticket = updateTicket?.ticket;
+  const isCompleted = ticket?.status === completed.value;
+  const isDiscarded = ticket?.status === discarded.value;
+
   const [comments, setComments] = useState(
-    updateTicket.ticket?.status === discarded.value
-      ? updateTicket.ticket?.comments
-      : ""
+    ticket?.status === discarded.value ? ticket?.comments : ""
+  );
+  const allowedNext = getAllowedNextStatuses(
+    updateTicket?.isDiscarded ? discarded.value : (ticket?.status as string),
+    user?.role as any
   );
 
-  const isCompleted = updateTicket?.ticket?.status === completed.value;
-  const isDiscarded = updateTicket?.ticket?.status === discarded.value;
+  console.log(allowedNext);
+
+  const nxtStatus = () => {
+    if (updateTicket.isDiscarded) return discarded.value;
+    if (ticket?.nextStatus === completed.value) return ticket?.nextStatus;
+
+    return ticket?.status;
+  };
+  const nxtStatusProps =
+    TICKET_STATUS_PROPS[
+      nxtStatus()?.toUpperCase() as keyof typeof TICKET_STATUS_PROPS
+    ];
+
+  const { color, buttonLabel } = nxtStatusProps || {
+    label: "",
+    color: "",
+    buttonLabel: "",
+  };
 
   const renderComments = () => {
-    if (updateTicket.isDiscarded || isDiscarded) {
+    if (updateTicket?.isDiscarded || isDiscarded) {
       return (
         <Box mb={4}>
           <Text mb={2}>Comments: </Text>
           {isDiscarded ? (
             <Text fontWeight={600}>
-              {updateTicket.ticket?.comments || "No comments provided"}
+              {ticket?.comments || "No comments provided"}
             </Text>
           ) : (
             <Textarea
@@ -75,9 +102,9 @@ const UpdateTicketStatus = ({
     setLoading(true);
     const res = await updateTicketStatus({
       id: updateTicket?.ticket?._id as string,
-      status: renderNextUpdateStatus(updateTicket).value,
+      status: allowedNext[0],
       userId: user?._id as string,
-      comments: updateTicket.isDiscarded ? comments : "",
+      comments: updateTicket?.isDiscarded ? comments : "",
     });
 
     if (res.success) {
@@ -99,12 +126,21 @@ const UpdateTicketStatus = ({
     setLoading(false);
   };
 
+  const renderTitle = () => {
+    let title = "";
+    if (updateTicket?.isDiscarded) return `Discard Ticket`;
+    if (isDiscarded || isCompleted)
+      title = updateTicket?.ticket?.title as string;
+    else title = `Update Ticket Status`;
+    return title;
+  };
+
   return (
     <Dialog.Root
       closeOnInteractOutside={false}
-      size={"sm"}
+      size={{ base: "md", xl: "md", sm: "xs" }}
       lazyMount
-      open={updateTicket.show}
+      open={updateTicket?.show}
       onOpenChange={(e) =>
         setUpdateTicket({
           ...updateTicket,
@@ -117,110 +153,101 @@ const UpdateTicketStatus = ({
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content>
-            <Dialog.Header>
-              <Dialog.Title>
-                {updateTicket?.isDiscarded
-                  ? `Discard Ticket`
-                  : "Update Ticket Status"}
-                {(isCompleted || isDiscarded) && !updateTicket.isDiscarded && (
-                  <PropertyStatusBadge item={updateTicket?.ticket as any} />
-                )}
-              </Dialog.Title>
+            <Dialog.Header alignItems={"center"}>
+              <Dialog.Title>{renderTitle()}</Dialog.Title>
+              {(isCompleted || isDiscarded) && !updateTicket?.isDiscarded && (
+                <PropertyStatusBadge item={ticket as any} />
+              )}
             </Dialog.Header>
             <Dialog.Body>
-              {!isCompleted && !isDiscarded && !updateTicket.isDiscarded && (
-                <Flex
-                  my={4}
-                  justifyContent={"center"}
-                  alignItems={"center"}
-                  gap={10}
-                >
-                  <Box mb={4}>
-                    <Text mb={2}>Current Status </Text>
-                    <PropertyStatusBadge item={updateTicket?.ticket as any} />
-                  </Box>
-                  <FaArrowRight />
-                  <Box mb={4}>
-                    <Text mb={2}>Next Status </Text>
-                    <Badge
-                      minW={"80px"}
-                      justifyContent={"center"}
-                      colorPalette={renderNextUpdateStatus(updateTicket).color}
-                    >
-                      {renderNextUpdateStatus(updateTicket).text}
-                    </Badge>
-                  </Box>
-                </Flex>
+              {!isCompleted && !isDiscarded && !updateTicket?.isDiscarded && (
+                <TicketStatus ticket={ticket as any} />
               )}
               <div>
                 <Box mb={4}>
                   <Text>Ticket ID: </Text>
-                  <Text fontWeight={600}>{updateTicket?.ticket?._id}</Text>
+                  <Text fontWeight={600}>{ticket?._id}</Text>
                 </Box>
                 <Box mb={4}>
                   <Text>Ticket Name: </Text>
-                  <Text fontWeight={600}>{updateTicket?.ticket?.title}</Text>
+                  <Text fontWeight={600}>{ticket?.title}</Text>
                 </Box>
                 <Box mb={4}>
                   <Text>Description: </Text>
-                  <Text fontWeight={600}>
-                    {updateTicket?.ticket?.description}
-                  </Text>
+                  <Text fontWeight={600}>{ticket?.description}</Text>
                 </Box>
                 <Box mb={4}>
                   <Text>Property name: </Text>
-                  <Text fontWeight={600}>
-                    {updateTicket?.ticket?.property.name}
-                  </Text>
+                  <Text fontWeight={600}>{ticket?.property.name || "-"}</Text>
                 </Box>
                 <Box mb={4}>
                   <Text>Reported by: </Text>
                   <Text fontWeight={600}>
-                    {updateTicket?.ticket?.reportedBy.email}
+                    {ticket?.reportedBy.email || "-"}
                   </Text>
                 </Box>
-                {isCompleted && !updateTicket.isDiscarded && (
+                <Box mb={4}>
+                  <Text>Assigned Technician: </Text>
+                  <Text fontWeight={600}>
+                    {ticket?.assignedTo.email || "-"}
+                  </Text>
+                </Box>
+                {isCompleted && !updateTicket?.isDiscarded && (
                   <Box mb={4}>
                     <Text>Completed by: </Text>
                     <Text fontWeight={600}>
-                      {updateTicket?.ticket?.completedBy?.email}
+                      {ticket?.completedBy?.email || "-"}
                     </Text>
                   </Box>
                 )}
+                <Box mb={4}>
+                  <Text>Date created: </Text>
+                  <Text fontWeight={600}>
+                    {moment(ticket?.createdAt).format("MMM D YYYY,  h:mm:ss a")}
+                  </Text>
+                </Box>
                 {renderComments()}
+                {ticket?.images &&
+                  Array.isArray(ticket?.images) &&
+                  ticket.images.length > 0 && (
+                    <Box mb={4}>
+                      <Text mb={2}>Proof / Actual Photo(s) </Text>
+                      <Flex gap={4}>
+                        {ticket?.images?.map((img) => (
+                          <HoverImage key={img.path} link={img.path} />
+                        ))}
+                      </Flex>
+                    </Box>
+                  )}
               </div>
             </Dialog.Body>
-            {((!isCompleted && !isDiscarded) || updateTicket.isDiscarded) && (
-              <Dialog.Footer>
-                <Dialog.ActionTrigger asChild>
-                  <Button
-                    onClick={() => {
-                      setComments("");
-                      setUpdateTicket({
-                        show: false,
-                        ticket: null,
-                        isDiscarded: false,
-                      });
-                    }}
-                    variant="outline"
-                  >
-                    Cancel
-                  </Button>
-                </Dialog.ActionTrigger>
+            <Dialog.Footer>
+              <Dialog.ActionTrigger asChild>
+                <Button
+                  onClick={() => {
+                    setComments("");
+                    setUpdateTicket({
+                      show: false,
+                      ticket: null,
+                      isDiscarded: false,
+                    });
+                  }}
+                  variant="outline"
+                >
+                  {allowedNext.length < 1 ? "Close" : "Cancel"}
+                </Button>
+              </Dialog.ActionTrigger>
+              {allowedNext.length > 0 && (
                 <Button
                   minWidth={100}
                   onClick={onSubmit}
-                  colorPalette={renderNextUpdateStatus(updateTicket).color}
+                  colorPalette={color}
                   disabled={loading}
                 >
-                  {loading ? (
-                    <Spinner />
-                  ) : (
-                    renderNextUpdateStatus(updateTicket).btnLabel
-                  )}
+                  {loading ? <Spinner /> : buttonLabel}
                 </Button>
-              </Dialog.Footer>
-            )}
+              )}
+            </Dialog.Footer>
             <Dialog.CloseTrigger asChild>
               <CloseButton
                 size="sm"

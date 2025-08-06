@@ -2,7 +2,7 @@ import DialogPopup from "@/components/CustomDialog";
 import Inputs from "@/components/inputs/Inputs";
 import SelectInput from "@/components/Select";
 import { toaster } from "@/components/ui/toaster";
-import { ROLES } from "@/constants/constants";
+import { ROLES } from "@/lib/constants/constants";
 import { userMutation } from "@/lib/api/user";
 import { tenantSchema } from "@/lib/formValidator";
 import { User } from "@/types/user.type";
@@ -12,15 +12,6 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { BiPlus } from "react-icons/bi";
 import UserStatusbadge from "./UserStatusbadge";
-
-// type TenantsFormData = {
-//   name: string;
-//   lastName: string;
-//   role: string;
-//   phone: string;
-//   email: string;
-//   status?: string;
-// };
 
 const TenantsForm = ({
   type,
@@ -65,6 +56,7 @@ const TenantsForm = ({
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const isDisabled = type === "update";
   useEffect(() => {
     if (details) {
       setRoles([details.role]);
@@ -119,16 +111,19 @@ const TenantsForm = ({
       label: "Name",
       placeholder: "Enter first name",
       id: "name",
+      disabled: isDisabled,
     },
     {
       label: "Last Name",
       placeholder: "Enter last name",
       id: "lastName",
+      disabled: isDisabled,
     },
     {
       label: "Phone Number",
       placeholder: "Enter phone number",
       id: "phone",
+      disabled: isDisabled,
     },
 
     {
@@ -136,7 +131,7 @@ const TenantsForm = ({
       placeholder: "Enter email",
       id: "email",
       type: "email",
-      disabled: type === "update",
+      disabled: isDisabled,
     },
   ];
 
@@ -189,6 +184,7 @@ const TenantsForm = ({
             value={roles}
             id="role"
             errors={errors}
+            disabled={isDisabled}
             onChange={(e: any) => setRoles(e.value)}
           />
         </Box>
@@ -199,10 +195,15 @@ const TenantsForm = ({
 
   return (
     <>
-      <Button p={4} onClick={() => setIsOpenDialog(true)}>
+      <Button
+        className="action-btn"
+        p={4}
+        onClick={() => setIsOpenDialog(true)}
+      >
         <BiPlus /> Add user
       </Button>
       <DialogPopup
+        hideSaveBtn={isDisabled}
         size={"sm"}
         onSubmit={handleSubmit((data) => onSubmit(data))}
         onOpenChange={(e) => setIsOpenDialog(e.open)}

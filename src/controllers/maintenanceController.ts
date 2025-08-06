@@ -12,6 +12,10 @@ import { buildGenericQuery } from "../utils/buildQuery";
 import { getPaginationAndSort } from "../utils/paginationAndSort";
 import { TIKET_STATUS } from "../utils/constants";
 
+import { v2 as cloudinary } from "cloudinary";
+import { uploadMultipleImages } from "../utils/mediaUpload";
+import { canChangeStatus } from "../utils/helper";
+
 export const createMaintenanceTicket = async (req: Request, res: Response) => {
   try {
     const { reportedBy, assignedTo, propertyId } = req.body;
@@ -43,8 +47,15 @@ export const createMaintenanceTicket = async (req: Request, res: Response) => {
       throw new NotFoundError("No property found with that property ID");
     }
 
+    let imageUrls: { path: string; public_id: string }[] = [];
+
+    if (req.files && Array.isArray(req.files)) {
+      imageUrls = await uploadMultipleImages(req.files, "maintenance-logs");
+    }
+
     const ticket = await MaintenanceLog.create({
       ...req.body,
+      images: imageUrls,
     });
 
     const assigneeProperties = foundUserAssignee.assignedRequests || [];
@@ -156,10 +167,51 @@ export const updateMaintenanceLog = async (req: Request, res: Response) => {
     const ticket = await MaintenanceLog.findById(req.params.id);
     if (!ticket) throw new NotFoundError("Ticket not found");
 
+    const copyReq = req as any;
+
+    const error = canChangeStatus({
+      current: ticket.status,
+      next: req.body.status,
+      req,
+    });
+
+    if (error) {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        msg: error,
+        error: true,
+      });
+      return;
+    }
+
+    if (copyReq?.user?.userId !== req.body.reportedBy) {
+      res.status(StatusCodes.UNAUTHORIZED).json({
+        msg: "Invalid assignee id",
+        error: true,
+      });
+      return;
+    }
+
+    // replace old image so that it does not remain in cloudinary
+    if (ticket.images && Array.isArray(ticket.images)) {
+      for (const img of ticket.images) {
+        if (img.public_id) {
+          await cloudinary.uploader.destroy(img.public_id);
+        }
+      }
+    }
+
+    let newImageUrls: { path: string; public_id: string }[] = [];
+
+    // upload new images if provided
+    if (req.files && Array.isArray(req.files)) {
+      newImageUrls = await uploadMultipleImages(req.files, "properties");
+    }
+
     const updatedTicket = await MaintenanceLog.findByIdAndUpdate(
       req.params.id,
       {
         ...req.body,
+        images: newImageUrls,
       },
       { new: true }
     );
@@ -181,16 +233,15 @@ export const updateMaintenanceLogStatus = async (
     const ticket = await MaintenanceLog.findById(req.params.id);
     if (!ticket) throw new NotFoundError("Ticket not found");
 
-    if (req.body.userId !== ticket.assignedTo.toString()) {
-      res.status(StatusCodes.UNAUTHORIZED).json({
-        msg: "Invalid assignee id",
-        error: true,
-      });
-      return;
-    }
-    if (!req.body.comments && req.body.status === TIKET_STATUS.DISCARDED) {
+    const ticketStatus = canChangeStatus({
+      current: ticket.status,
+      next: req.body.status,
+      req,
+    });
+
+    if (ticketStatus.error) {
       res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "Comments are required for discarded status",
+        msg: ticketStatus.msg,
         error: true,
       });
       return;
@@ -201,6 +252,7 @@ export const updateMaintenanceLogStatus = async (
       {
         status: req.body.status,
         comments: req.body.comments || null,
+        nextStatus: ticketStatus.nextStatus,
         completedBy:
           req.body.status === TIKET_STATUS.COMPLETED ? req.body.userId : null,
       },

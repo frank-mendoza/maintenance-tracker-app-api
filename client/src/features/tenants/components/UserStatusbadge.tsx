@@ -1,4 +1,4 @@
-import { USER_STATUS } from "@/constants/constants";
+import { USER_STATUS } from "@/lib/constants/constants";
 import { Badge } from "@chakra-ui/react";
 
 const UserStatusbadge = ({ isVerified }: { isVerified: boolean }) => {

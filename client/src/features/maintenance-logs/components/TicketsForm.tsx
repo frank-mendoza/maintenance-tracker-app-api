@@ -1,23 +1,37 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import DialogPopup from "@/components/CustomDialog";
+import UploadFile from "@/components/FileUpload";
+import HoverImage from "@/components/Hover";
 import Inputs from "@/components/inputs/Inputs";
 import SelectInput from "@/components/Select";
 import { toaster } from "@/components/ui/toaster";
-import { ROLES_TYPES, USER_STATUS } from "@/constants/constants";
-import PropertyStatusBadge from "@/features/property/components/PropertyStatusbadge";
+import {
+  PROPERTY_STATUS,
+  ROLES_TYPES,
+  USER_STATUS,
+} from "@/lib/constants/constants";
 import { maintenanceMutation } from "@/lib/api/maintenance";
 import { fetchProperties } from "@/lib/api/property";
 import { fetchUsers } from "@/lib/api/user";
 import { ticketSchema } from "@/lib/formValidator";
+import { loadImageFiles } from "@/lib/helper/helper";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { MaintenanceLog } from "@/types/maintenance.types";
 import { IProperty } from "@/types/property.types";
 import { User } from "@/types/user.type";
-import { Button, createListCollection, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  createListCollection,
+  Flex,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { BiPlus } from "react-icons/bi";
+import TicketStatusBadge from "./TicketStatusbadge";
 
 type TicketData = {
   propertyId: string;
@@ -44,8 +58,10 @@ const TicketsForm = ({
   const { user } = useGlobalStore();
 
   const isTenant = user?.role === ROLES_TYPES.TENANT;
-  const isPending =
-    details?.status === "pending" && user?.role === ROLES_TYPES.TENANT;
+  const isLandlord = user?.role === ROLES_TYPES.LANDLORD;
+  const isPending = details?.status === PROPERTY_STATUS.pending.value;
+
+  const isDisabled = isLandlord || (!isPending && type === "update");
   const {
     register,
     handleSubmit,
@@ -62,6 +78,7 @@ const TicketsForm = ({
     },
     resolver: yupResolver(ticketSchema),
   });
+  const [images, setImages] = useState<File[]>([]);
   const [properties, setProperties] = useState<IProperty[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [assignee, setAssignee] = useState<string[]>([]);
@@ -69,15 +86,25 @@ const TicketsForm = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (details) {
+    if (details && isOpenDialog) {
       setAssignee([details.assignedTo._id]);
       setProperty([details.property._id as string]);
       setValue("propertyId", details?.property?._id as string);
       setValue("description", details.description);
       setValue("title", details.title);
       setValue("assignedTo", details.assignedTo._id as string);
+
+      (async () => {
+        const loadedImgs = await loadImageFiles(details.images, images);
+        setImages(loadedImgs);
+      })();
     }
-  }, [details, setValue]);
+    if (!isOpenDialog) {
+      setImages([]);
+      setAssignee([]);
+      setProperty([]);
+    }
+  }, [details, setValue, isOpenDialog]);
 
   useEffect(() => {
     if (assignee.length > 0) {
@@ -118,6 +145,7 @@ const TicketsForm = ({
       reportedBy: user?._id as string,
       isUpdate: type === "update",
       id: details?._id,
+      images,
     });
 
     if (res?.success) {
@@ -162,6 +190,7 @@ const TicketsForm = ({
           id="title"
           errors={errors}
           register={register}
+          disabled={isDisabled}
         />
         <Inputs
           type={"textarea"}
@@ -170,6 +199,7 @@ const TicketsForm = ({
           id="description"
           errors={errors}
           register={register}
+          disabled={isDisabled}
         />
 
         <SelectInput
@@ -181,6 +211,7 @@ const TicketsForm = ({
           errors={errors}
           value={assignee}
           id="assignedTo"
+          disabled={isDisabled}
           onChange={(e: any) => setAssignee(e.value)}
         />
         <SelectInput
@@ -192,8 +223,32 @@ const TicketsForm = ({
           errors={errors}
           id="propertyId"
           value={property}
+          disabled={isDisabled}
           onChange={(e: any) => setProperty(e.value)}
         />
+        {(isPending || type === "create") && (
+          <Box width={"100%"}>
+            <Text mb={2}>Proof / Actual Photo(s)</Text>
+            <UploadFile
+              disabled={isDisabled}
+              dropzone
+              type={type}
+              size={150}
+              images={images}
+              setImages={setImages}
+            />
+          </Box>
+        )}
+        {!isPending && details?.images && details?.images.length > 0 && (
+          <Box mb={4}>
+            <Text mb={2}>Proof / Actual Photo(s) </Text>
+            <Flex gap={4}>
+              {details.images?.map((img) => (
+                <HoverImage key={img.path} link={img.path} />
+              ))}
+            </Flex>
+          </Box>
+        )}
       </VStack>
     </>
   );
@@ -203,9 +258,9 @@ const TicketsForm = ({
     if (type === "update")
       title = (
         <>
-          Update {details?.title}
+          {isLandlord || !isPending ? "" : "Update"} {details?.title}
           {"    "}
-          {details && <PropertyStatusBadge item={details} />}
+          {details && <TicketStatusBadge status={details.status} />}
         </>
       );
     return title;
@@ -214,13 +269,18 @@ const TicketsForm = ({
   return (
     <>
       {isTenant && (
-        <Button p={4} onClick={() => setIsOpenDialog(true)}>
+        <Button
+          className="action-btn"
+          p={4}
+          onClick={() => setIsOpenDialog(true)}
+        >
           <BiPlus /> Report issue
         </Button>
       )}
 
       <DialogPopup
         size={"md"}
+        hideSaveBtn={(isLandlord || !isPending) && type === "update"}
         onSubmit={handleSubmit((data) => onSubmit(data))}
         onOpenChange={(e) => setIsOpenDialog(e.open)}
         open={isOpenDialog}

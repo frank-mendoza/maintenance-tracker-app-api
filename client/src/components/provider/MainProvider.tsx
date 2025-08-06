@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import useGlobalStore from "@/lib/store/useGlobalStore";
 import { ColorModeProvider } from "../ui/color-mode";
 import { Loading } from "../Loading";
-import { ROLES_TYPES } from "@/constants/constants";
+import { ROLES_TYPES } from "@/lib/constants/constants";
 import { fetchUser } from "@/lib/api/user";
 
 export function MainProvider({ children }: { children: ReactNode }) {

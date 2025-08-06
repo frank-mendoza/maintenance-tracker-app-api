@@ -17,3 +17,17 @@
   background: red;
   z-index: 5;
 }
+
+@media screen and (max-width: 768px) {
+  .action-btn {
+    height: 2.5rem;
+    width: 2.5rem;
+    text-indent: -9999px;
+    overflow: hidden;
+    white-space: nowrap;
+
+    svg {
+      margin-left: 7px;
+    }
+  }
+}

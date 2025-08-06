@@ -5,7 +5,7 @@ import SelectInput from "@/components/Select";
 import { toaster } from "@/components/ui/toaster";
 import { propertyMutation } from "@/lib/api/property";
 import { propertySchema } from "@/lib/formValidator";
-import { urlToFile } from "@/lib/helper/helper";
+import { loadImageFiles } from "@/lib/helper/helper";
 import { IProperty } from "@/types/property.types";
 import {
   Button,
@@ -91,21 +91,10 @@ const PropertyForm = ({
       details?.images?.length &&
       images.length === 0
     ) {
-      const loadFiles = async () => {
-        const files = await Promise.all(
-          (details?.images ?? []).map(async (img) => urlToFile(img.path))
-        );
-        const combined = [...images, ...files];
-
-        // Remove duplicates by file name
-        const uniqueFiles = Array.from(
-          new Map(combined.map((file) => [file.name, file])).values()
-        );
-
-        setImages(uniqueFiles);
-      };
-
-      loadFiles();
+      (async () => {
+        const loadedImgs = await loadImageFiles(details.images, images);
+        setImages(loadedImgs);
+      })();
     }
   }, [type, isOpenDialog, details?.images, images]);
 
@@ -161,7 +150,7 @@ const PropertyForm = ({
   const form = (
     <>
       <VStack gap={4} alignItems={"start"}>
-        <SimpleGrid width={"100%"} columns={2} gap="40px">
+        <SimpleGrid width={"100%"} columns={2} minChildWidth="sm" gap="40px">
           <Inputs
             label="Name"
             placeholder="Enter property name"
@@ -231,7 +220,11 @@ const PropertyForm = ({
 
   return (
     <>
-      <Button p={4} onClick={() => setIsOpenDialog(true)}>
+      <Button
+        className="action-btn"
+        p={4}
+        onClick={() => setIsOpenDialog(true)}
+      >
         {type === "create" ? (
           <>
             {" "}

@@ -1,13 +1,17 @@
 import mongoose, { Schema, model, Document } from "mongoose";
+import { TIKET_STATUS } from "../utils/constants";
+import { IUser } from "./User";
 
 export interface IMaintenanceLog extends Document {
   propertyId: mongoose.Types.ObjectId | string;
   title: string;
   description: string;
-  status: "pending" | "in_progress" | "completed" | "discarded";
-  reportedBy: mongoose.Types.ObjectId | string;
-  assignedTo: mongoose.Types.ObjectId | string;
-  completedBy?: mongoose.Types.ObjectId | string;
+  status: (typeof TIKET_STATUS)[keyof typeof TIKET_STATUS];
+  nextStatus?: (typeof TIKET_STATUS)[keyof typeof TIKET_STATUS];
+  reportedBy: mongoose.Types.ObjectId | string | IUser;
+  assignedTo: mongoose.Types.ObjectId | string | IUser;
+  completedBy?: mongoose.Types.ObjectId | string | IUser;
+  images: { path: string; public_id: string }[];
   comments?: string; // Optional field for discarded status
   createdAt: Date;
   updatedAt: Date;
@@ -25,9 +29,20 @@ const maintenanceLogSchema = new Schema<IMaintenanceLog>(
     comments: { type: String, default: null },
     status: {
       type: String,
-      enum: ["pending", "in_progress", "completed", "discarded"],
+      enum: Object.values(TIKET_STATUS),
       default: "pending",
     },
+    nextStatus: {
+      type: String,
+      enum: Object.values(TIKET_STATUS),
+      default: TIKET_STATUS.APPROVED,
+    },
+    images: [
+      {
+        path: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+    ],
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

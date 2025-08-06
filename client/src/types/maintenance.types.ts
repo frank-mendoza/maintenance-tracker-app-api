@@ -1,4 +1,4 @@
-import { PROPERTY_STATUS } from "@/constants/constants";
+import { PROPERTY_STATUS } from "@/lib/constants/constants";
 import { IProperty } from "./property.types";
 import { User } from "./user.type";
 
@@ -8,6 +8,7 @@ export type MaintenanceLog = {
   title: string;
   description: string;
   status: keyof typeof PROPERTY_STATUS;
+  nextStatus: keyof typeof PROPERTY_STATUS;
   assignedTo: User;
   reportedBy: User;
   completedBy?: User;
@@ -16,5 +17,9 @@ export type MaintenanceLog = {
   updatedAt: string;
   __v: number;
   property: IProperty;
+  images?: {
+    path: string;
+    public_id: string;
+  }[];
   index: number;
 };

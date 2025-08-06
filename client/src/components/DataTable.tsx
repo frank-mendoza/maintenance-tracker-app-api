@@ -144,7 +144,13 @@ const DataTable = ({
       return (
         <Table.Row>
           <td>
-            <Center width={"100%"} py={5} mt={5}>
+            <Center
+              position={"absolute"}
+              top={"20%"}
+              left={0}
+              width={"100%"}
+              py={5}
+            >
               <Spinner
                 color="red.500"
                 css={{ "--spinner-track-color": "colors.gray.200" }}
@@ -169,6 +175,8 @@ const DataTable = ({
       return (
         <Table.Row key={idx}>
           {columns.map((col) => {
+            console.log(col);
+            const isActions = col.key === "actions";
             const valueRender =
               (row as any)[col.key] || getValueByPath(row, col.key);
 
@@ -177,7 +185,15 @@ const DataTable = ({
                 ? generateBooleanCell((row as any)[col.key])
                 : valueRender;
             return (
-              <Table.Cell key={col.key} p={4}>
+              <Table.Cell
+                width={150}
+                textAlign={col.key === "actions" ? "center" : "left"}
+                backgroundColor={"#fff"}
+                position={isActions ? "sticky" : "initial"}
+                right={0}
+                key={col.key}
+                p={4}
+              >
                 {col.render ? col.render(row) : renderedValue}
               </Table.Cell>
             );
@@ -201,7 +217,9 @@ const DataTable = ({
       {filterComponent || null}
       <Table.ScrollArea borderWidth="1px" minW={"100%"}>
         <Table.Root
+          minH={"140px"}
           stickyHeader
+          overflowX={"auto"}
           size="sm"
           variant="outline"
           interactive
@@ -211,7 +229,11 @@ const DataTable = ({
             <tr>
               {columns.map((col) => (
                 <Table.ColumnHeader
+                  textAlign={col.key === "actions" ? "center" : "left"}
+                  position={col.key === "actions" ? "sticky" : "initial"}
                   p={4}
+                  width={150}
+                  right={0}
                   key={col.key}
                   bg={"gray.100"}
                   onClick={() => {
@@ -235,7 +257,7 @@ const DataTable = ({
             </tr>
           </Table.Header>
 
-          <Table.Body>{renderTableList()}</Table.Body>
+          <Table.Body position={"relative"}>{renderTableList()}</Table.Body>
         </Table.Root>
       </Table.ScrollArea>
 
