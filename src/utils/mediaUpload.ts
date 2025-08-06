@@ -8,7 +8,7 @@ type CloudinaryUploadResult = {
 };
 
 export const uploadMultipleImages = async (
-  files: Express.Multer.File[],
+  files: any[],
   folder = "default-folder"
 ): Promise<CloudinaryUploadResult[]> => {
   const imageUrls: CloudinaryUploadResult[] = [];

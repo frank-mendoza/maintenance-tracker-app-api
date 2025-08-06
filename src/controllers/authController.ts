@@ -11,19 +11,9 @@ import {
 import { createJWT, verifyJWT } from "../utils/token";
 import { sendVerificationEmail } from "../utils/emailServices";
 
-export interface RegisterRequest extends Request {
-  // Add body/query params as needed, e.g.:
-  // body: {
-  //     username: string;
-  //     password: string;
-  // }
-}
-
-export interface RegisterResponse extends Response {}
-
 export const register = async (
-  req: RegisterRequest,
-  res: RegisterResponse,
+  req: Request,
+  res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
