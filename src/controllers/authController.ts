@@ -83,7 +83,7 @@ export const login = async (
       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
       // maxAge: oneday, // Set cookie expiration to 1 day
       expires: new Date(Date.now() + oneday), // Set cookie expiration date
-      sameSite: "none",
+      sameSite: "strict",
     });
 
     res
@@ -99,7 +99,7 @@ export const logout = (req: Request, res: Response): void => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: "strict",
   });
   res.status(StatusCodes.OK).json({ msg: "user logged out!", success: true });
 };

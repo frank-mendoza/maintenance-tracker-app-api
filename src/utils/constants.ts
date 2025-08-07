@@ -24,7 +24,6 @@ export const TIKET_STATUS = {
   PENDING_APPROVAL: "pending_approval",
 };
 
-type Role = "tenant" | "landlord" | "technician";
 type Status = (typeof TIKET_STATUS)[keyof typeof TIKET_STATUS];
 
 export const STATUS_TRANSITIONS: Record<
@@ -40,11 +39,11 @@ export const STATUS_TRANSITIONS: Record<
     roles: ["technician"],
   },
   in_progress: {
-    next: ["resolved"],
+    next: ["resolved", "discarded"],
     roles: ["technician"],
   },
   resolved: {
-    next: ["completed"],
+    next: ["completed", "discarded"],
     roles: ["landlord"],
   },
   pending_approval: {
