@@ -11,6 +11,7 @@
 !.yarn/versions
 
 dist/
+client/
 
 # env files (can opt-in for committing if needed)
 .env*
