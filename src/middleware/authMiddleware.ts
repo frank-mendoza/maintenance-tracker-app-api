@@ -23,7 +23,7 @@ export const authenticateUser = (
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
     });
     throw new UnauthenticatedError("Authentication Invalid");
   }
