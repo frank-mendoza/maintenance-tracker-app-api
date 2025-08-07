@@ -103,7 +103,7 @@ mongoose
   .connect(process.env.MONGO_URI!)
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`🌐 Server running at http://localhost:${PORT}`);
+      console.log(`🌐 Server is now active...`);
     });
   })
   .catch((err) => {
