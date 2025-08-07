@@ -18,7 +18,15 @@ export const authenticateUser = (
 ) => {
   const { token } = req.cookies;
 
-  if (!token) throw new UnauthenticatedError("Authentication Invalid");
+  if (!token) {
+    // Clear old token first
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
+    throw new UnauthenticatedError("Authentication Invalid");
+  }
 
   try {
     const payload = verifyJWT(token);

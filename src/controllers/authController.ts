@@ -78,13 +78,6 @@ export const login = async (
 
     const oneday = 1000 * 60 * 60 * 24; // 1 day in milliseconds
 
-    // Clear old token first
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-    });
-
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
