@@ -18,6 +18,11 @@ import userRouter from "./routes/userRouter";
 import propertyRouter from "./routes/propertyRouter";
 import maintenanceRouter from "./routes/maintenanceRouter";
 import { authenticateUser } from "./middleware/authMiddleware";
+import http from "http";
+import { initSocket } from "./utils/socketHandlers/socket";
+
+import swaggerUi from "swagger-ui-express";
+import swaggerJSDoc from "swagger-jsdoc";
 
 dotenv.config();
 
@@ -30,6 +35,8 @@ app.set("trust proxy", 1);
 //   max: 100,
 //   message: { msg: "IP rate limit exceeded, retry in 15 minutes." },
 // });
+
+const server = http.createServer(app);
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -60,17 +67,30 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-// Define the directory where PDFs will be saved
-// const REPORTS_DIR = path.join(__dirname, "uploads", "reports");
+// Initialize socket.io
+initSocket(server);
 
-// Ensure the folder exists
-// if (!existsSync(REPORTS_DIR)) {
-//   mkdirSync(REPORTS_DIR, { recursive: true });
-// }
+// Swagger
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Maintenance Tracker API",
+      version: "1.0.0",
+      description: "API documentation for maintenance tracker project",
+    },
+    servers: [
+      {
+        url: process.env.API_BASE_URL,
+      },
+    ],
+  },
+  apis: ["./src/lib/*.ts"], // Path to your TypeScript route files
+};
 
-// app.get("/", (req, res) => {
-//   res.send("✅ Backend running with Node.js 20 and Express 4.19");
-// });
+const swaggerSpec = swaggerJSDoc(options);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/property", authenticateUser, propertyRouter);

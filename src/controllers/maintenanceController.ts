@@ -15,6 +15,7 @@ import { TIKET_STATUS } from "../utils/constants";
 import { v2 as cloudinary } from "cloudinary";
 import { uploadMultipleImages } from "../utils/mediaUpload";
 import { canChangeStatus } from "../utils/helper";
+import { emitSocketEvent } from "../utils/socketHandlers/socket";
 
 export const createMaintenanceTicket = async (req: Request, res: Response) => {
   try {
@@ -67,6 +68,9 @@ export const createMaintenanceTicket = async (req: Request, res: Response) => {
     foundUserAssignee.assignedRequests = assigneeProperties;
 
     await foundUserAssignee.save();
+
+    // Emit real-time event
+    await emitSocketEvent("maintenance:new", ticket);
 
     res.status(StatusCodes.CREATED).json({
       msg: "Maintenance ticket created successfully",
@@ -259,6 +263,8 @@ export const updateMaintenanceLogStatus = async (
       { new: true }
     );
 
+    // Emit real-time event
+    await emitSocketEvent("maintenance:update", updatedTicket);
     res
       .status(StatusCodes.OK)
       .json({ maintenanceLog: updatedTicket, success: true });
